@@ -10,6 +10,7 @@ import (
 )
 
 func main() {
+	// master := runner.SpawnNewMaster(256)
 	const PORT = 3002
 	router := mux.NewRouter()
 	color.HiGreen("Starting POSEIDON on PORT:%d\n", PORT)
