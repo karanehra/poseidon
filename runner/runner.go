@@ -1,7 +1,7 @@
 package runner
 
 import (
-	"fmt"
+	"poseidon/jobs"
 	"poseidon/model"
 	"time"
 )
@@ -16,8 +16,8 @@ func LaunchRunner() {
 	go func() {
 		for {
 			select {
-			case t := <-cronTicker.C:
-				fmt.Printf("Ticked at: %v\n", t.UnixNano())
+			case <-cronTicker.C:
+				jobMaster.AddJob(jobs.ParseFeedsJob)
 			}
 		}
 	}()
