@@ -4,11 +4,11 @@ package model
 type Job struct {
 	Executer      func()
 	Name          string
-	ParentChannel chan int
+	ParentChannel *chan int
 }
 
 //Run starts the job in a goroutine
-func (job *Job) Run() {
+func (job *Job) Run(channel chan int) {
 	go job.Executer()
-	job.ParentChannel <- 1
+	channel <- 1
 }
