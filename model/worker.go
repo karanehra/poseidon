@@ -20,21 +20,12 @@ func (worker *Worker) Enqueue(job *Job) {
 
 //Start starts worker execution
 func (worker *Worker) Start() {
-	go func() {
-		for {
-			select {
-			case <-worker.Channel:
-				fmt.Println("Got it")
-				job := worker.getJobToExecute()
-				if job != nil {
-					job.Run(worker.Channel)
-				}
-			}
-		}
-	}()
 	worker.IsBusy = true
 	worker.Channel = make(chan int)
-	worker.getJobToExecute().Run(worker.Channel)
+	for i := range worker.JobQueue {
+		go worker.JobQueue[i].Run(worker.Channel)
+	}
+	worker.IsBusy = false
 }
 
 func (worker *Worker) getJobToExecute() *Job {

@@ -9,6 +9,5 @@ type Job struct {
 
 //Run starts the job in a goroutine
 func (job *Job) Run(channel chan int) {
-	go job.Executer()
-	channel <- 1
+	job.Executer()
 }
