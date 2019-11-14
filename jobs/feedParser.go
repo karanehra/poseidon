@@ -10,7 +10,7 @@ var ParseFeedsJob *model.Job = &model.Job{
 	Executer: parseFeeds,
 }
 
-func parseFeeds() {
-	fmt.Println("Parsing....")
+func parseFeeds(payload interface{}) {
+	fmt.Printf("Parsing.... %v \n", payload)
 	return
 }

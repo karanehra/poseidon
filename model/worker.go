@@ -25,6 +25,7 @@ func (worker *Worker) Start() {
 	for i := range worker.JobQueue {
 		go worker.JobQueue[i].Run(worker.Channel)
 	}
+	worker.JobQueue = []*Job{}
 	worker.IsBusy = false
 }
 

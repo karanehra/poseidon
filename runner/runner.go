@@ -17,7 +17,7 @@ func LaunchRunner() {
 		for {
 			select {
 			case <-cronTicker.C:
-				jobMaster.AddJob(jobs.ParseFeedsJob)
+				jobMaster.AddJob(jobs.ParseFeedsJob.AddPayloadAndReturn(map[string]string{"hey": "hello"}))
 			}
 		}
 	}()
