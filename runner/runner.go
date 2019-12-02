@@ -11,13 +11,13 @@ var jobMaster *model.Master
 
 //LaunchRunner instantiates the ticker and defines the jobs to be done
 func LaunchRunner() {
-	cronTicker = time.NewTicker(1000 * time.Millisecond)
+	cronTicker = time.NewTicker(10000 * time.Millisecond)
 	jobMaster = SpawnNewMaster(256)
 	go func() {
 		for {
 			select {
 			case <-cronTicker.C:
-				jobMaster.AddJob(jobs.ParseFeedsJob.AddPayloadAndReturn(map[string]string{"hey": "hello"}))
+				jobMaster.AddJob(jobs.ParseFeedsJob.AddPayloadAndReturn(map[string]string{"URL": "hello"}))
 			}
 		}
 	}()

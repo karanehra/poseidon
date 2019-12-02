@@ -1,8 +1,14 @@
 package jobs
 
-import "poseidon/model"
+import (
+	"log"
+	"poseidon/model"
+	"poseidon/util"
+)
 
-import "fmt"
+type feedParsePayload struct {
+	URL string
+}
 
 //ParseFeedsJob routinely checks feed urls for updates
 var ParseFeedsJob *model.Job = &model.Job{
@@ -11,6 +17,11 @@ var ParseFeedsJob *model.Job = &model.Job{
 }
 
 func parseFeeds(payload interface{}) {
-	fmt.Printf("Parsing.... %v \n", payload)
+	queryPayload, ok := payload.(map[string]string)
+	if !ok {
+		log.Fatal(ok)
+	} else {
+		util.ParseFeedURL(queryPayload["URL"])
+	}
 	return
 }
