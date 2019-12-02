@@ -7,17 +7,19 @@ import (
 )
 
 var cronTicker *time.Ticker
-var jobMaster *model.Master
+
+//JobMaster is the main job distributor
+var JobMaster *model.Master
 
 //LaunchRunner instantiates the ticker and defines the jobs to be done
 func LaunchRunner() {
 	cronTicker = time.NewTicker(10000 * time.Millisecond)
-	jobMaster = SpawnNewMaster(256)
+	JobMaster = SpawnNewMaster(256)
 	go func() {
 		for {
 			select {
 			case <-cronTicker.C:
-				jobMaster.AddJob(jobs.ParseFeedsJob.AddPayloadAndReturn(map[string]string{"URL": "hello"}))
+				JobMaster.AddJob(jobs.ParseFeedsJob.AddPayloadAndReturn(map[string]string{"URL": "hello"}))
 			}
 		}
 	}()
