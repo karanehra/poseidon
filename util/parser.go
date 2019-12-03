@@ -1,6 +1,14 @@
 package util
 
 import (
+	"encoding/csv"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"strings"
+
 	"github.com/mmcdole/gofeed"
 )
 
@@ -11,4 +19,31 @@ func ParseFeedURL(url string) {
 	fp := gofeed.NewParser()
 	fp.ParseURL(url)
 	// fmt.Printf("Parsed new feed %v\n", feed)
+}
+
+//ParseCSVForURLs reads a local csv for url sources
+func ParseCSVForURLs() ([]string, error) {
+	urlSet := []string{}
+	fmt.Println(os.Getwd())
+	pwd, _ := os.Getwd()
+	url := filepath.Join(pwd, "test.csv")
+	csvData, err := ioutil.ReadFile(url)
+	if err != nil {
+		fmt.Println("Error reading file")
+		return nil, err
+	}
+	dataString := string(csvData)
+	reader := csv.NewReader(strings.NewReader(dataString))
+	for {
+		url, err := reader.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			fmt.Println("Error occured reading csv")
+			return nil, err
+		}
+		urlSet = append(urlSet, url[0])
+	}
+	return urlSet, nil
 }
