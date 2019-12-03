@@ -1,7 +1,6 @@
 package util
 
 import (
-	"fmt"
 	"github.com/mmcdole/gofeed"
 )
 
@@ -10,6 +9,6 @@ import (
 //ParseFeedURL uses gofeed to fetch the rss feed contents
 func ParseFeedURL(url string) {
 	fp := gofeed.NewParser()
-	feed, _ := fp.ParseURL(url)
-	fmt.Printf("Parsed new feed %v\n", feed)
+	fp.ParseURL(url)
+	// fmt.Printf("Parsed new feed %v\n", feed)
 }

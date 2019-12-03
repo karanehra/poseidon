@@ -1,5 +1,7 @@
 package model
 
+import "fmt"
+
 //Job defines a function to be executed at some times
 type Job struct {
 	Executer      func(interface{})
@@ -10,6 +12,7 @@ type Job struct {
 
 //Run starts the job in a goroutine
 func (job *Job) Run(channel chan int) {
+	fmt.Printf("Exectuting job: %v\n", job.Name)
 	job.Executer(job.Payload)
 }
 

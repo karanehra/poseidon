@@ -1,10 +1,10 @@
 package main
 
 import (
-	"poseidon/runner"
+	"poseidon/jobs"
 )
 
 func main() {
-	runner.LaunchRunner()
+	jobs.LaunchRunner()
 	select {}
 }

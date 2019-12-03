@@ -10,13 +10,13 @@ type feedParsePayload struct {
 	URL string
 }
 
-//ParseFeedsJob routinely checks feed urls for updates
-var ParseFeedsJob *model.Job = &model.Job{
+//ParseFeedJob routinely checks feed urls for updates
+var ParseFeedJob *model.Job = &model.Job{
 	Name:     "Parse Feeds",
-	Executer: parseFeeds,
+	Executer: parseFeed,
 }
 
-func parseFeeds(payload interface{}) {
+func parseFeed(payload interface{}) {
 	queryPayload, ok := payload.(map[string]string)
 	if !ok {
 		log.Fatal(ok)
