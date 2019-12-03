@@ -1,10 +1,12 @@
 package cache
 
-import "net/http"
-
-import "fmt"
-
-import "errors"
+import (
+	"bytes"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"net/http"
+)
 
 const vapourPort int = 3009
 
@@ -60,14 +62,22 @@ func (client *Client) Get(key string) (interface{}, error) {
 
 //Set puts a key value to the cache
 //TODO
-func (client *Client) Set(key string) error {
-	res, err := http.Get(client.createGetURL(key))
+func (client *Client) Set(key string, value interface{}) error {
+	payload, err := json.Marshal(map[string]interface{}{
+		"key":    key,
+		"value":  value,
+		"expiry": 0,
+	})
+	if err != nil {
+		fmt.Println("Cant set")
+		return err
+	}
+	res, err := http.Post(client.SetKeyURL, "application/json", bytes.NewBuffer(payload))
 	if err != nil {
 		return err
-	} else if res.StatusCode != 200 {
-		{
-			return errors.New("Cache: GET failed")
-		}
+	}
+	if res.StatusCode == 200 {
+		return nil
 	}
 	return nil
 }

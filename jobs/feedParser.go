@@ -1,6 +1,7 @@
 package jobs
 
 import (
+	"fmt"
 	"log"
 	"poseidon/model"
 	"poseidon/util"
@@ -22,6 +23,10 @@ func parseFeed(payload interface{}) {
 		log.Fatal(ok)
 	} else {
 		util.ParseFeedURL(queryPayload["URL"])
+	}
+	err := CacheClient.Set("key", "asfsf")
+	if err != nil {
+		fmt.Printf("Error setting cache val %v\n", err.Error())
 	}
 	return
 }

@@ -15,7 +15,7 @@ var UpdateFeedsJob *model.Job = &model.Job{
 //UpdateFeeds triggers a feed recheck
 func updateFeeds(payload interface{}) {
 	//getting all feeds logic
-	feeds, err := util.ParseCSVForURLs()
+	feeds, err := util.ParseCSVForURLs("test.csv")
 
 	if err != nil {
 		fmt.Println("An error occured while fetching feeds")

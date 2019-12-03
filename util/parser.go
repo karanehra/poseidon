@@ -22,11 +22,11 @@ func ParseFeedURL(url string) {
 }
 
 //ParseCSVForURLs reads a local csv for url sources
-func ParseCSVForURLs() ([]string, error) {
+func ParseCSVForURLs(fileName string) ([]string, error) {
 	urlSet := []string{}
 	fmt.Println(os.Getwd())
 	pwd, _ := os.Getwd()
-	url := filepath.Join(pwd, "test.csv")
+	url := filepath.Join(pwd, fileName)
 	csvData, err := ioutil.ReadFile(url)
 	if err != nil {
 		fmt.Println("Error reading file")
