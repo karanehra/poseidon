@@ -15,10 +15,14 @@ import (
 //const a string = "https://timesofindia.indiatimes.com/rssfeedstopstories.cms"
 
 //ParseFeedURL uses gofeed to fetch the rss feed contents
-func ParseFeedURL(url string) {
+func ParseFeedURL(url string) (*gofeed.Feed, error) {
 	fp := gofeed.NewParser()
-	fp.ParseURL(url)
-	// fmt.Printf("Parsed new feed %v\n", feed)
+	feed, err := fp.ParseURL(url)
+	if err != nil {
+		fmt.Println("Error while parsing")
+		return nil, err
+	}
+	return feed, err
 }
 
 //ParseCSVForURLs reads a local csv for url sources

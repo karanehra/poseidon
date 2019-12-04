@@ -61,7 +61,6 @@ func (client *Client) Get(key string) (interface{}, error) {
 }
 
 //Set puts a key value to the cache
-//TODO
 func (client *Client) Set(key string, value interface{}) error {
 	payload, err := json.Marshal(map[string]interface{}{
 		"key":    key,

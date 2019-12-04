@@ -2,7 +2,6 @@ package jobs
 
 import (
 	"fmt"
-	"log"
 	"poseidon/model"
 	"poseidon/util"
 )
@@ -20,13 +19,13 @@ var ParseFeedJob *model.Job = &model.Job{
 func parseFeed(payload interface{}) {
 	queryPayload, ok := payload.(map[string]string)
 	if !ok {
-		log.Fatal(ok)
-	} else {
-		util.ParseFeedURL(queryPayload["URL"])
+		fmt.Println("Problem in payload casting")
+		return
 	}
-	err := CacheClient.Set("key", "asfsf")
-	if err != nil {
-		fmt.Printf("Error setting cache val %v\n", err.Error())
-	}
+	feed, _ := util.ParseFeedURL(queryPayload["URL"])
+
+	var updateJob *model.Job = FeedExtractorJob.AddPayloadAndReturn(feed)
+	JobMaster.AddJob(updateJob)
+
 	return
 }
