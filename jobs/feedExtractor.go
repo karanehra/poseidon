@@ -1,6 +1,7 @@
 package jobs
 
 import (
+	"fmt"
 	"poseidon/model"
 	"time"
 
@@ -25,6 +26,6 @@ func extractFeed(payload interface{}) {
 		data["updated"] = time.Now()
 	}
 	for i := range feed.Items {
-		CacheClient.Set(feed.Items[i].Title, feed.Items[i])
+		CacheClient.Set(fmt.Sprintf("%s:%v", feed.Items[i].Title, time.Now().UnixNano()), feed.Items[i])
 	}
 }
