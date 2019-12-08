@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 )
 
 const vapourPort int = 3009
@@ -17,6 +18,7 @@ type Client struct {
 	StatusCheck string
 	GetKeyURL   string
 	SetKeyURL   string
+	Instance    *http.Client
 }
 
 //Entry defines a key value struct
@@ -28,7 +30,9 @@ type Entry struct {
 //Create checks for a connection with the vapour server
 func (client *Client) Create() error {
 	client.createURLs()
-	res, err := http.Get(client.StatusCheck)
+	client.Instance = &http.Client{Timeout: 1 * time.Second}
+	req, _ := http.NewRequest("GET", client.StatusCheck, nil)
+	res, err := client.Instance.Do(req)
 	if err != nil {
 		return err
 	} else if res.StatusCode != 200 {
@@ -49,7 +53,9 @@ func (client *Client) createGetURL(key string) string {
 
 //Get returns a key value from the cache
 func (client *Client) Get(key string) (interface{}, error) {
-	res, err := http.Get(client.createGetURL(key))
+	req, _ := http.NewRequest("GET", client.createGetURL(key), nil)
+	req.Header.Set("content-type", "application/json")
+	res, err := client.Instance.Do(req)
 	if err != nil {
 		return nil, err
 	} else if res.StatusCode != 200 {
@@ -71,7 +77,9 @@ func (client *Client) Set(key string, value interface{}) error {
 		fmt.Println("Cant set")
 		return err
 	}
-	res, err := http.Post(client.SetKeyURL, "application/json", bytes.NewBuffer(payload))
+	req, _ := http.NewRequest("POST", client.SetKeyURL, bytes.NewReader(payload))
+	req.Header.Set("content-type", "application/json")
+	res, err := client.Instance.Do(req)
 	if err != nil {
 		return err
 	}
