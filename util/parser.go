@@ -28,7 +28,6 @@ func ParseFeedURL(url string) (*gofeed.Feed, error) {
 //ParseCSVForURLs reads a local csv for url sources
 func ParseCSVForURLs(fileName string) ([]string, error) {
 	urlSet := []string{}
-	fmt.Println(os.Getwd())
 	pwd, _ := os.Getwd()
 	url := filepath.Join(pwd, fileName)
 	csvData, err := ioutil.ReadFile(url)
