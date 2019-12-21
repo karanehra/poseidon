@@ -49,7 +49,7 @@ func UpdateFeedsJob() {
 	}
 	color.Yellow("== [INFO]: Created data payload for %v articles...", articleCount)
 	color.Yellow("== [INFO]: Finding Mongo Collection...")
-	coll := db.DB.Collection("x")
+	coll := db.DB.Collection("articles")
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 	var documents []interface{} = []interface{}{}
