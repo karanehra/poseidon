@@ -10,7 +10,7 @@ var cronTicker *time.Ticker
 
 //LaunchRunner instantiates the ticker and defines the jobs to be done
 func LaunchRunner() {
-	cronTicker = time.NewTicker(1 * time.Minute)
+	cronTicker = time.NewTicker(20 * time.Second)
 	go func() {
 		for {
 			select {
