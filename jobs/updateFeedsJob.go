@@ -4,32 +4,35 @@ import (
 	"context"
 	"fmt"
 	"poseidon/db"
+	"poseidon/logger"
 	"poseidon/util"
 	"time"
 
-	"github.com/fatih/color"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 //UpdateFeedsJob parses urls taken from a local csv and aggregates a data
 func UpdateFeedsJob() {
-	color.Yellow("[INFO]:Starting Feed Update...")
+	logger := &logger.Logger{}
+	logger.INFO("Starting Update Job...")
+	logger.DepthIn()
 	urls, err := util.ParseCSVForURLs("test.csv")
 	if err != nil {
-		color.Red("== [ERROR]:No URLs found!")
+		logger.ERROR("No URLs found!")
 		return
 	}
-	color.Green("== [INFO]:Found %v URLs...", len(urls))
+	logger.SUCCESS(fmt.Sprintf("Found %v URLs...", len(urls)))
+	logger.DepthIn()
 	var articleData []map[string]string = []map[string]string{}
 	var articleCount int
 	for i := range urls {
-		fmt.Println("")
-		color.Yellow("==== [INFO]: Begin parse %v...", urls[i])
+		logger.INFO(fmt.Sprintf("Begin parse %v...", urls[i]))
 		data, err := util.ParseFeedURL(urls[i])
 		if err != nil {
-			color.Red("==== [ERROR]: Can't parse %v!", urls[i])
+			logger.ERROR(fmt.Sprintf("Can't parse %v!", urls[i]))
 		}
-		color.Green("==== [INFO]: Parsed %v articles", len(data.Items))
+		logger.SUCCESS(fmt.Sprintf("Parsed %v articles", len(data.Items)))
 		var feedArticles []map[string]string = []map[string]string{}
 		for j := range data.Items {
 			payload := map[string]string{
@@ -40,6 +43,7 @@ func UpdateFeedsJob() {
 				"content":         util.StripHTMLTags(data.Items[j].Content),
 				"description":     util.StripHTMLTags(data.Items[j].Description),
 				"updated":         data.Items[j].Updated,
+				"URL":             util.StripHTMLTags(data.Items[j].Link),
 			}
 			feedArticles = append(feedArticles, payload)
 			articleCount++
@@ -47,29 +51,46 @@ func UpdateFeedsJob() {
 
 		articleData = append(articleData, feedArticles...)
 	}
-	color.Yellow("== [INFO]: Created data payload for %v articles...", articleCount)
-	color.Yellow("== [INFO]: Finding Mongo Collection...")
+	logger.DepthOut()
+	logger.INFO(fmt.Sprintf("Created data payload for %v articles...", articleCount))
+	logger.INFO("Finding Mongo Collection...")
 	coll := db.DB.Collection("articles")
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 	var documents []interface{} = []interface{}{}
-	color.Yellow("\n== [INFO]: Creating Bulk Insert Payload...")
+	logger.INFO("Deduping and Creating Bulk Insert Payload..")
 	for i := range articleData {
-		documents = append(documents, bson.M{
-			"feedTitle":       articleData[i]["feedTitle"],
-			"feedDescription": articleData[i]["feedDescription"],
-			"feedURL":         articleData[i]["feedURL"],
-			"title":           articleData[i]["title"],
-			"content":         articleData[i]["content"],
-			"description":     articleData[i]["description"],
-			"updated":         articleData[i]["updated"],
-		})
+		if !doesArticleExist(util.CreateHashSHA(articleData[i]["URL"]), coll) {
+			documents = append(documents, bson.M{
+				"feedTitle":       articleData[i]["feedTitle"],
+				"feedDescription": articleData[i]["feedDescription"],
+				"feedURL":         articleData[i]["feedURL"],
+				"title":           articleData[i]["title"],
+				"content":         articleData[i]["content"],
+				"description":     articleData[i]["description"],
+				"updated":         articleData[i]["updated"],
+				"URL":             articleData[i]["URL"],
+				"urlHash":         util.CreateHashSHA(articleData[i]["URL"]),
+			})
+		}
 	}
-	color.Yellow("== [INFO]: Created %v Articles Payload. Writing to DB...", len(documents))
-	_, error := coll.InsertMany(ctx, documents)
-	if error != nil {
-		color.Red("== [ERROR]: Error occured during database write...")
+	if len(documents) > 0 {
+		logger.INFO(fmt.Sprintf("Created %v Articles Payload. Writing to DB...", len(documents)))
+		_, error := coll.InsertMany(ctx, documents)
+		if error != nil {
+			logger.ERROR("Error occured during database write...")
+		}
+		logger.SUCCESS(fmt.Sprintf("Wrote %v articles to DB", len(documents)))
+	} else {
+		logger.INFO("No new articles...")
 	}
-	color.Green("== [SUCCESS]: Wrote %v articles to DB", len(documents))
-	color.Yellow("[INFO]: Task Finished!")
+	logger.DepthOut()
+	logger.INFO("[Task Finished!")
+}
+
+func doesArticleExist(hash string, coll *mongo.Collection) bool {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	result := coll.FindOne(ctx, bson.M{"urlHash": hash})
+	return result != nil
 }
