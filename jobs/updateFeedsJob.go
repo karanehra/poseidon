@@ -77,13 +77,14 @@ func UpdateFeedsJob() {
 			})
 		}
 	}
+	var tagData map[string]int32 = map[string]int32{}
 	for i := range articleData {
 		article := articleData[i]
 		title := strings.ReplaceAll(article["title"], ".", " ")
 		description := strings.ReplaceAll(article["description"], ".", " ")
-		getStringTags(title + " " + description)
-
+		updateTagDataFromString(title+" "+description, tagData)
 	}
+	fmt.Println(tagData)
 	if len(documents) == 0 {
 		logger.INFO("No new articles...")
 		logger.DepthOut()
@@ -100,6 +101,14 @@ func UpdateFeedsJob() {
 	logger.INFO("Task Finished!")
 }
 
+func updateTagDataFromString(data string, tagData map[string]int32) map[string]int32 {
+	tags := getStringTags(data)
+	for i := range tags {
+		tagData[tags[i]]++
+	}
+	return tagData
+}
+
 func doesArticleExist(hash string, coll *mongo.Collection) bool {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
@@ -110,21 +119,13 @@ func doesArticleExist(hash string, coll *mongo.Collection) bool {
 func getStringTags(data string) []string {
 	words := strings.Split(data, " ")
 	tags := []string{}
-	tempTag := []string{}
 	for i := range words {
 		word := []rune(words[i])
 		if len(word) > 0 && unicode.IsUpper(word[0]) {
-			tempTag = append(tempTag, words[i])
-			if i == len(words) {
-				tags = append(tags, strings.Join(tempTag, " "))
-			}
-		} else {
-			tags = append(tags, strings.Join(tempTag, " "))
-			tempTag = []string{}
+			tags = append(tags, words[i])
 		}
 	}
-	fmt.Println(cleanTags(tags))
-	return tags
+	return cleanTags(tags)
 }
 
 func cleanTags(tags []string) []string {
@@ -133,7 +134,13 @@ func cleanTags(tags []string) []string {
 		tag := strings.ToLower(tags[i])
 		regex := regexp.MustCompile("([[:punct:]])")
 		tag = regex.ReplaceAllLiteralString(tag, "")
-		clean = append(clean, tag)
+		if !isTagRejected(tag) {
+			clean = append(clean, tag)
+		}
 	}
 	return clean
+}
+
+func isTagRejected(tag string) bool {
+	return util.RejectedTagsMap[tag]
 }
