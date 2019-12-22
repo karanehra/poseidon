@@ -35,7 +35,7 @@ func (logger *Logger) ERROR(message string) {
 
 //SUCCESS prints an error log to shell
 func (logger *Logger) SUCCESS(message string) {
-	color.Red("%s[SUCCESS]:%s", logger.getIndent(), message)
+	color.Green("%s[SUCCESS]:%s", logger.getIndent(), message)
 }
 
 //getIndent returns an indent string as log prefix

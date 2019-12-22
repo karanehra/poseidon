@@ -6,7 +6,10 @@ import (
 	"poseidon/db"
 	"poseidon/logger"
 	"poseidon/util"
+	"regexp"
+	"strings"
 	"time"
+	"unicode"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -74,18 +77,27 @@ func UpdateFeedsJob() {
 			})
 		}
 	}
-	if len(documents) > 0 {
-		logger.INFO(fmt.Sprintf("Created %v Articles Payload. Writing to DB...", len(documents)))
-		_, error := coll.InsertMany(ctx, documents)
-		if error != nil {
-			logger.ERROR("Error occured during database write...")
-		}
-		logger.SUCCESS(fmt.Sprintf("Wrote %v articles to DB", len(documents)))
-	} else {
-		logger.INFO("No new articles...")
+	for i := range articleData {
+		article := articleData[i]
+		title := strings.ReplaceAll(article["title"], ".", " ")
+		description := strings.ReplaceAll(article["description"], ".", " ")
+		getStringTags(title + " " + description)
+
 	}
+	if len(documents) == 0 {
+		logger.INFO("No new articles...")
+		logger.DepthOut()
+		logger.INFO("Task Finished!")
+		return
+	}
+	logger.INFO(fmt.Sprintf("Created %v Articles Payload. Writing to DB...", len(documents)))
+	_, error := coll.InsertMany(ctx, documents)
+	if error != nil {
+		logger.ERROR("Error occured during database write...")
+	}
+	logger.SUCCESS(fmt.Sprintf("Wrote %v articles to DB", len(documents)))
 	logger.DepthOut()
-	logger.INFO("[Task Finished!")
+	logger.INFO("Task Finished!")
 }
 
 func doesArticleExist(hash string, coll *mongo.Collection) bool {
@@ -93,4 +105,35 @@ func doesArticleExist(hash string, coll *mongo.Collection) bool {
 	defer cancel()
 	result := coll.FindOne(ctx, bson.M{"urlHash": hash})
 	return result != nil
+}
+
+func getStringTags(data string) []string {
+	words := strings.Split(data, " ")
+	tags := []string{}
+	tempTag := []string{}
+	for i := range words {
+		word := []rune(words[i])
+		if len(word) > 0 && unicode.IsUpper(word[0]) {
+			tempTag = append(tempTag, words[i])
+			if i == len(words) {
+				tags = append(tags, strings.Join(tempTag, " "))
+			}
+		} else {
+			tags = append(tags, strings.Join(tempTag, " "))
+			tempTag = []string{}
+		}
+	}
+	fmt.Println(cleanTags(tags))
+	return tags
+}
+
+func cleanTags(tags []string) []string {
+	var clean = []string{}
+	for i := range tags {
+		tag := strings.ToLower(tags[i])
+		regex := regexp.MustCompile("([[:punct:]])")
+		tag = regex.ReplaceAllLiteralString(tag, "")
+		clean = append(clean, tag)
+	}
+	return clean
 }
