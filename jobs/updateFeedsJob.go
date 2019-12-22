@@ -9,6 +9,7 @@ import (
 
 	"github.com/fatih/color"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 //UpdateFeedsJob parses urls taken from a local csv and aggregates a data
@@ -40,6 +41,7 @@ func UpdateFeedsJob() {
 				"content":         util.StripHTMLTags(data.Items[j].Content),
 				"description":     util.StripHTMLTags(data.Items[j].Description),
 				"updated":         data.Items[j].Updated,
+				"URL":             util.StripHTMLTags(data.Items[j].Link),
 			}
 			feedArticles = append(feedArticles, payload)
 			articleCount++
@@ -53,23 +55,38 @@ func UpdateFeedsJob() {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 	var documents []interface{} = []interface{}{}
-	color.Yellow("\n== [INFO]: Creating Bulk Insert Payload...")
+	color.Yellow("\n== [INFO]: Deduping and Creating Bulk Insert Payload...")
 	for i := range articleData {
-		documents = append(documents, bson.M{
-			"feedTitle":       articleData[i]["feedTitle"],
-			"feedDescription": articleData[i]["feedDescription"],
-			"feedURL":         articleData[i]["feedURL"],
-			"title":           articleData[i]["title"],
-			"content":         articleData[i]["content"],
-			"description":     articleData[i]["description"],
-			"updated":         articleData[i]["updated"],
-		})
+		if !doesArticleExist(util.CreateHashSHA(articleData[i]["URL"]), coll) {
+			documents = append(documents, bson.M{
+				"feedTitle":       articleData[i]["feedTitle"],
+				"feedDescription": articleData[i]["feedDescription"],
+				"feedURL":         articleData[i]["feedURL"],
+				"title":           articleData[i]["title"],
+				"content":         articleData[i]["content"],
+				"description":     articleData[i]["description"],
+				"updated":         articleData[i]["updated"],
+				"URL":             articleData[i]["URL"],
+				"urlHash":         util.CreateHashSHA(articleData[i]["URL"]),
+			})
+		}
 	}
-	color.Yellow("== [INFO]: Created %v Articles Payload. Writing to DB...", len(documents))
-	_, error := coll.InsertMany(ctx, documents)
-	if error != nil {
-		color.Red("== [ERROR]: Error occured during database write...")
+	if len(documents) > 0 {
+		color.Yellow("== [INFO]: Created %v Articles Payload. Writing to DB...", len(documents))
+		_, error := coll.InsertMany(ctx, documents)
+		if error != nil {
+			color.Red("== [ERROR]: Error occured during database write...")
+		}
+		color.Green("== [SUCCESS]: Wrote %v articles to DB", len(documents))
+	} else {
+		color.Yellow("== [INFO]: No new articles...")
 	}
-	color.Green("== [SUCCESS]: Wrote %v articles to DB", len(documents))
 	color.Yellow("[INFO]: Task Finished!")
+}
+
+func doesArticleExist(hash string, coll *mongo.Collection) bool {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	result := coll.FindOne(ctx, bson.M{"urlHash": hash})
+	return result != nil
 }
