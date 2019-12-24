@@ -23,4 +23,10 @@ var RejectedTagsMap map[string]bool = map[string]bool{
 	"dawn":      true,
 	"rare":      true,
 	"but":       true,
+	"what":      true,
+	"when":      true,
+	"where":     true,
+	"with":      true,
+	"well":      true,
+	"went":      true,
 }

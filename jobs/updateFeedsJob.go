@@ -134,6 +134,7 @@ func cleanTags(tags []string) []string {
 		tag := strings.ToLower(tags[i])
 		regex := regexp.MustCompile("([[:punct:]])")
 		tag = regex.ReplaceAllLiteralString(tag, "")
+		tag = strings.ReplaceAll(tag, "’s", "")
 		if !isTagRejected(tag) {
 			clean = append(clean, tag)
 		}
