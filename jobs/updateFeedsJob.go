@@ -84,7 +84,7 @@ func UpdateFeedsJob() {
 		description := strings.ReplaceAll(article["description"], ".", " ")
 		updateTagDataFromString(title+" "+description, tagData)
 	}
-	fmt.Println(tagData)
+	// fmt.Println(tagData)
 	if len(documents) == 0 {
 		logger.INFO("No new articles...")
 		logger.DepthOut()
@@ -113,7 +113,11 @@ func doesArticleExist(hash string, coll *mongo.Collection) bool {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	result := coll.FindOne(ctx, bson.M{"urlHash": hash})
-	return result != nil
+	fmt.Println(result.Err())
+	if result.Err() != nil {
+		return false
+	}
+	return true
 }
 
 func getStringTags(data string) []string {
