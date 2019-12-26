@@ -12,8 +12,6 @@ import (
 	"github.com/mmcdole/gofeed"
 )
 
-//const a string = "https://timesofindia.indiatimes.com/rssfeedstopstories.cms"
-
 //ParseFeedURL uses gofeed to fetch the rss feed contents
 func ParseFeedURL(url string) (*gofeed.Feed, error) {
 	fp := gofeed.NewParser()

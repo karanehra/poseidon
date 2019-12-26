@@ -113,7 +113,6 @@ func doesArticleExist(hash string, coll *mongo.Collection) bool {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	result := coll.FindOne(ctx, bson.M{"urlHash": hash})
-	fmt.Println(result.Err())
 	if result.Err() != nil {
 		return false
 	}

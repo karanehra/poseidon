@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -14,7 +15,12 @@ import (
 var DB *mongo.Database
 
 func init() {
-	databaseClientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
+	mongoDBUri := os.Getenv("MONGO_DB_URL")
+	if mongoDBUri == "" {
+		log.Fatal("Env Variable MONGO_DB_URL not specified")
+	}
+
+	databaseClientOptions := options.Client().ApplyURI(mongoDBUri)
 	mongoClient, err := mongo.NewClient(databaseClientOptions)
 	if err != nil {
 		log.Fatal(err)
@@ -25,6 +31,10 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	DB = mongoClient.Database("testdb")
+	mongoDBName := os.Getenv("MONGO_DB_NAME")
+	if mongoDBName == "" {
+		log.Fatal("Env Variable MONGO_DB_NAME not specified")
+	}
+	DB = mongoClient.Database(mongoDBName)
 	fmt.Println("Database Connection Success")
 }
