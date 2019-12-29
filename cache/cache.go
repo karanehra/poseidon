@@ -38,6 +38,7 @@ func (client *Client) Create() error {
 	} else if res.StatusCode != 200 {
 		return errors.New("Connection failed")
 	}
+	fmt.Println("Connected to KV store...")
 	return nil
 }
 
@@ -74,7 +75,6 @@ func (client *Client) Set(key string, value interface{}) error {
 		"expiry": 0,
 	})
 	if err != nil {
-		fmt.Println("Cant set")
 		return err
 	}
 	req, _ := http.NewRequest("POST", client.SetKeyURL, bytes.NewReader(payload))

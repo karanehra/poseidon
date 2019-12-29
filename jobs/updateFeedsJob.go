@@ -45,7 +45,8 @@ func UpdateFeedsJob() {
 				"title":           util.StripHTMLTags(data.Items[j].Title),
 				"content":         util.StripHTMLTags(data.Items[j].Content),
 				"description":     util.StripHTMLTags(data.Items[j].Description),
-				"updated":         data.Items[j].Updated,
+				"updated":         string(time.Now().UnixNano() / int64(time.Millisecond)),
+				"created":         string(time.Now().UnixNano() / int64(time.Millisecond)),
 				"URL":             util.StripHTMLTags(data.Items[j].Link),
 			}
 			feedArticles = append(feedArticles, payload)
@@ -72,6 +73,7 @@ func UpdateFeedsJob() {
 				"content":         articleData[i]["content"],
 				"description":     articleData[i]["description"],
 				"updated":         articleData[i]["updated"],
+				"created":         articleData[i]["created"],
 				"URL":             articleData[i]["URL"],
 				"urlHash":         util.CreateHashSHA(articleData[i]["URL"]),
 			})
@@ -84,7 +86,11 @@ func UpdateFeedsJob() {
 		description := strings.ReplaceAll(article["description"], ".", " ")
 		updateTagDataFromString(title+" "+description, tagData)
 	}
-	// fmt.Println(tagData)
+	err = CacheClient.Set("POSEIDON_ARTICLE_TAGS", tagData)
+	if err != nil {
+		logger.ERROR("Cannot set values in cache")
+	}
+	logger.SUCCESS("Stored tagset to cache")
 	if len(documents) == 0 {
 		logger.INFO("No new articles...")
 		logger.DepthOut()
