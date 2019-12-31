@@ -140,6 +140,9 @@ func getStringTags(data string) []string {
 func cleanTags(tags []string) []string {
 	var clean = []string{}
 	for i := range tags {
+		if len(tags[i]) == 1 {
+			continue
+		}
 		tag := strings.ToLower(tags[i])
 		regex := regexp.MustCompile("([[:punct:]])")
 		tag = regex.ReplaceAllLiteralString(tag, "")
