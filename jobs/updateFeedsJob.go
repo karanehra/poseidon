@@ -17,26 +17,36 @@ import (
 
 //UpdateFeedsJob parses urls taken from a local csv and aggregates a data
 func UpdateFeedsJob() {
+
 	logger := &logger.Logger{}
+
 	logger.INFO("Starting Update Job...")
 	logger.DepthIn()
+
 	urls, err := util.ParseCSVForURLs("test.csv")
 	if err != nil {
 		logger.ERROR("No URLs found!")
 		return
 	}
+
 	logger.SUCCESS(fmt.Sprintf("Found %v URLs...", len(urls)))
 	logger.DepthIn()
-	var articleData []map[string]string = []map[string]string{}
+
+	var articleData = []map[string]string{}
 	var articleCount int
+
 	for i := range urls {
 		logger.INFO(fmt.Sprintf("Begin parse %v...", urls[i]))
+
 		data, err := util.ParseFeedURL(urls[i])
 		if err != nil {
 			logger.ERROR(fmt.Sprintf("Can't parse %v!", urls[i]))
 		}
+
 		logger.SUCCESS(fmt.Sprintf("Parsed %v articles", len(data.Items)))
+
 		var feedArticles []map[string]string = []map[string]string{}
+
 		for j := range data.Items {
 			payload := map[string]string{
 				"feedTitle":       data.Title,
@@ -55,14 +65,17 @@ func UpdateFeedsJob() {
 
 		articleData = append(articleData, feedArticles...)
 	}
+
 	logger.DepthOut()
 	logger.INFO(fmt.Sprintf("Created data payload for %v articles...", articleCount))
 	logger.INFO("Finding Mongo Collection...")
+
 	coll := db.DB.Collection("articles")
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-	defer cancel()
+
 	var documents []interface{} = []interface{}{}
+
 	logger.INFO("Deduping and Creating Bulk Insert Payload..")
+
 	for i := range articleData {
 		if !doesArticleExist(util.CreateHashSHA(articleData[i]["URL"]), coll) {
 			documents = append(documents, bson.M{
@@ -79,17 +92,22 @@ func UpdateFeedsJob() {
 			})
 		}
 	}
+
 	var tagData map[string]int32 = map[string]int32{}
+
 	for i := range articleData {
 		article := articleData[i]
 		title := strings.ReplaceAll(article["title"], ".", " ")
 		description := strings.ReplaceAll(article["description"], ".", " ")
 		updateTagDataFromString(title+" "+description, tagData)
 	}
+
 	err = CacheClient.Set("POSEIDON_ARTICLE_TAGS", tagData)
+
 	if err != nil {
 		logger.ERROR("Cannot set values in cache")
 	}
+
 	logger.SUCCESS("Stored tagset to cache")
 	if len(documents) == 0 {
 		logger.INFO("No new articles...")
@@ -98,6 +116,8 @@ func UpdateFeedsJob() {
 		return
 	}
 	logger.INFO(fmt.Sprintf("Created %v Articles Payload. Writing to DB...", len(documents)))
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
 	_, error := coll.InsertMany(ctx, documents)
 	if error != nil {
 		logger.ERROR("Error occured during database write...")
