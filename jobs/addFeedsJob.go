@@ -30,14 +30,44 @@ func AddFeedsJob() {
 	}
 	logger.INFO(fmt.Sprintf("Dedupe yeilded %v new URLS in sources", len(urls)))
 
+	var feedDocuments = []interface{}{}
 	for i := range newFeeds {
 		data, err := util.ParseFeedURL(newFeeds[i])
 		if err != nil {
 			logger.ERROR("Cant parse URL")
 			return
 		}
-		feedData := map[string]string{}
+		feedData := bson.M{}
+		if data.Title != "" {
+			feedData["title"] = data.Title
+		}
+		if data.Description != "" {
+			feedData["description"] = data.Description
+		}
+		if data.Link != "" {
+			feedData["URL"] = data.Link
+		}
+		if data.FeedLink != "" {
+			feedData["URL"] = data.FeedLink
+		}
+		if data.Updated != "" {
+			feedData["updated"] = data.Updated
+		}
+		if data.Published != "" {
+			feedData["published"] = data.Published
+		}
+		if len(data.Categories) > 0 {
+			feedData["categories"] = data.Categories
+		}
+		feedDocuments = append(feedDocuments, feedData)
 	}
+	coll := database.DB.Collection("feeds")
+	_, insertError := coll.InsertMany(context.Background(), feedDocuments)
+	if insertError != nil {
+		logger.ERROR("Cant add data to DB")
+		return
+	}
+	logger.INFO("Task completed")
 }
 
 func doesFeedExist(URL string) bool {
