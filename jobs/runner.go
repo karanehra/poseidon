@@ -26,7 +26,7 @@ func LaunchRunner() {
 		for {
 			select {
 			case <-cronTicker.C:
-				UpdateFeedsJob()
+				AddFeedsJob()
 			}
 		}
 	}()
