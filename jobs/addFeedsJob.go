@@ -28,7 +28,12 @@ func AddFeedsJob() {
 			newFeeds = append(newFeeds, urls[i])
 		}
 	}
-	logger.INFO(fmt.Sprintf("Dedupe yeilded %v new URLS in sources", len(urls)))
+	logger.INFO(fmt.Sprintf("Dedupe yeilded %v new URLS in sources", len(newFeeds)))
+
+	if len(newFeeds) == 0 {
+		logger.INFO(fmt.Sprintf("No new feeds found"))
+		return
+	}
 
 	var feedDocuments = []interface{}{}
 	for i := range newFeeds {
@@ -45,11 +50,11 @@ func AddFeedsJob() {
 			feedData["description"] = data.Description
 		}
 		if data.Link != "" {
-			feedData["URL"] = data.Link
+			feedData["URL"] = newFeeds[i]
 		}
-		if data.FeedLink != "" {
-			feedData["URL"] = data.FeedLink
-		}
+		// if data.FeedLink != "" {
+		// 	feedData["URL"] = data.FeedLink
+		// }
 		if data.Updated != "" {
 			feedData["updated"] = data.Updated
 		}
@@ -64,6 +69,7 @@ func AddFeedsJob() {
 	coll := database.DB.Collection("feeds")
 	_, insertError := coll.InsertMany(context.Background(), feedDocuments)
 	if insertError != nil {
+		fmt.Println(insertError)
 		logger.ERROR("Cant add data to DB")
 		return
 	}
