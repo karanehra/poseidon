@@ -2,7 +2,7 @@ package jobs
 
 import (
 	"fmt"
-	"poseidon/db"
+	"juno/database"
 	"poseidon/logger"
 
 	"github.com/karanehra/schemas"
@@ -13,12 +13,8 @@ func CheckForProcesses() {
 	logger := &logger.Logger{}
 	logger.INFO("Starting check for process job")
 	logger.DepthIn()
-	processes, err := schemas.GetAllProcesses(db.DB)
-	if err != nil {
-		logger.ERROR("Job failed due to error")
-		return
-	}
-	logger.INFO(fmt.Sprintf("Found %v processes", len(processes)))
+	process := schemas.GetNewProcess(database.DB)
+	logger.INFO(fmt.Sprintf("Found %v processe", process._id))
 	logger.DepthOut()
 	logger.SUCCESS("Job finished")
 }

@@ -6,6 +6,7 @@ import (
 	"juno/database"
 	"poseidon/logger"
 	"poseidon/util"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -52,11 +53,11 @@ func AddFeedsJob() {
 		if data.Link != "" {
 			feedData["URL"] = newFeeds[i]
 		}
-		// if data.FeedLink != "" {
-		// 	feedData["URL"] = data.FeedLink
-		// }
 		if data.Updated != "" {
 			feedData["updated"] = data.Updated
+		} else {
+			feedData["updated"] = string(time.Now().UnixNano() / int64(time.Millisecond))
+			feedData["created"] = string(time.Now().UnixNano() / int64(time.Millisecond))
 		}
 		if data.Published != "" {
 			feedData["published"] = data.Published
