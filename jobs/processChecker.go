@@ -14,7 +14,7 @@ func CheckForProcesses() {
 	logger.INFO("Starting check for process job")
 	logger.DepthIn()
 	process := schemas.GetNewProcess(database.DB)
-	logger.INFO(fmt.Sprintf("Found %v processe", process._id))
+	logger.INFO(fmt.Sprintf("Found %v processe", process))
 	logger.DepthOut()
 	logger.SUCCESS("Job finished")
 }
