@@ -1,6 +1,7 @@
 package jobs
 
 import (
+	"fmt"
 	"log"
 	"poseidon/cache"
 	"time"
@@ -11,7 +12,8 @@ var CacheClient *cache.Client
 
 //LaunchRunner instantiates the ticker and defines the jobs to be done
 func LaunchRunner() {
-	cronTicker := time.NewTicker(20 * time.Minute)
+	// UpdateFeedsJob()
+	cronTicker := time.NewTicker(10 * time.Second)
 	processTicker := time.NewTicker(10 * time.Second)
 	CacheClient = &cache.Client{
 		Port:    3009,
@@ -25,9 +27,9 @@ func LaunchRunner() {
 		for {
 			select {
 			case <-cronTicker.C:
-				AddFeedsJob()
+				fmt.Println("heck")
 			case <-processTicker.C:
-				CheckForProcesses()
+				go CheckForProcesses()
 			}
 		}
 	}()

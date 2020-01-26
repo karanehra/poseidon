@@ -41,6 +41,7 @@ func UpdateFeedsJob() {
 		data, err := util.ParseFeedURL(urls[i])
 		if err != nil {
 			logger.ERROR(fmt.Sprintf("Can't parse %v!", urls[i]))
+			continue
 		}
 
 		logger.SUCCESS(fmt.Sprintf("Parsed %v articles", len(data.Items)))
@@ -102,7 +103,7 @@ func UpdateFeedsJob() {
 		updateTagDataFromString(title+" "+description, tagData)
 	}
 
-	err = CacheClient.Set("POSEIDON_ARTICLE_TAGS", tagData)
+	// err = CacheClient.Set("POSEIDON_ARTICLE_TAGS", tagData)
 
 	if err != nil {
 		logger.ERROR("Cannot set values in cache")
