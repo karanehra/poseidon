@@ -6,6 +6,7 @@ import (
 	"juno/database"
 	"poseidon/logger"
 	"poseidon/util"
+	"strconv"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -56,8 +57,8 @@ func AddFeedsJob() {
 		if data.Updated != "" {
 			feedData["updated"] = data.Updated
 		} else {
-			feedData["updated"] = string(time.Now().UnixNano() / int64(time.Millisecond))
-			feedData["created"] = string(time.Now().UnixNano() / int64(time.Millisecond))
+			feedData["updated"] = strconv.Itoa(int(time.Now().UnixNano() / int64(time.Millisecond)))
+			feedData["created"] = strconv.Itoa(int(time.Now().UnixNano() / int64(time.Millisecond)))
 		}
 		if data.Published != "" {
 			feedData["published"] = data.Published

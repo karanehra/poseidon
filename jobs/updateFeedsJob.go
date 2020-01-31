@@ -7,6 +7,7 @@ import (
 	"poseidon/logger"
 	"poseidon/util"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 	"unicode"
@@ -56,8 +57,8 @@ func UpdateFeedsJob() {
 				"title":           util.StripHTMLTags(data.Items[j].Title),
 				"content":         util.StripHTMLTags(data.Items[j].Content),
 				"description":     util.StripHTMLTags(data.Items[j].Description),
-				"updated":         string(time.Now().UnixNano() / int64(time.Millisecond)),
-				"created":         string(time.Now().UnixNano() / int64(time.Millisecond)),
+				"updated":         strconv.Itoa(int(time.Now().Unix() * 1000)),
+				"created":         strconv.Itoa(int(time.Now().Unix() * 1000)),
 				"URL":             util.StripHTMLTags(data.Items[j].Link),
 			}
 			feedArticles = append(feedArticles, payload)
