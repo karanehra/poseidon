@@ -17,7 +17,7 @@ func ParseFeedURL(url string) (*gofeed.Feed, error) {
 	fp := gofeed.NewParser()
 	feed, err := fp.ParseURL(url)
 	if err != nil {
-		fmt.Println("Error while parsing")
+		fmt.Println(err)
 		return nil, err
 	}
 	return feed, err

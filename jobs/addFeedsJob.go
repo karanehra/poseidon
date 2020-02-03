@@ -6,9 +6,8 @@ import (
 	"juno/database"
 	"poseidon/logger"
 	"poseidon/util"
-	"strconv"
-	"time"
 
+	"github.com/karanehra/schemas"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -16,7 +15,7 @@ import (
 func AddFeedsJob() {
 	logger := &logger.Logger{}
 	logger.INFO("Starting Add Feeds Job")
-	urls, err := util.ParseCSVForURLs("test.csv")
+	urls, err := util.ParseCSVForURLs("new.csv")
 	if err != nil {
 		logger.ERROR("Cant parse csv file")
 		return
@@ -42,30 +41,13 @@ func AddFeedsJob() {
 		data, err := util.ParseFeedURL(newFeeds[i])
 		if err != nil {
 			logger.ERROR("Cant parse URL")
-			return
+			continue
 		}
-		feedData := bson.M{}
+		feedData := schemas.Feed{}
 		if data.Title != "" {
-			feedData["title"] = data.Title
+			feedData.Title = data.Title
 		}
-		if data.Description != "" {
-			feedData["description"] = data.Description
-		}
-		if data.Link != "" {
-			feedData["URL"] = newFeeds[i]
-		}
-		if data.Updated != "" {
-			feedData["updated"] = data.Updated
-		} else {
-			feedData["updated"] = strconv.Itoa(int(time.Now().UnixNano() / int64(time.Millisecond)))
-			feedData["created"] = strconv.Itoa(int(time.Now().UnixNano() / int64(time.Millisecond)))
-		}
-		if data.Published != "" {
-			feedData["published"] = data.Published
-		}
-		if len(data.Categories) > 0 {
-			feedData["categories"] = data.Categories
-		}
+		feedData.URL = newFeeds[i]
 		feedDocuments = append(feedDocuments, feedData)
 	}
 	coll := database.DB.Collection("feeds")

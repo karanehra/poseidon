@@ -12,6 +12,7 @@ import (
 	"time"
 	"unicode"
 
+	"github.com/karanehra/schemas"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -24,24 +25,32 @@ func UpdateFeedsJob() {
 	logger.INFO("Starting Update Job...")
 	logger.DepthIn()
 
-	urls, err := util.ParseCSVForURLs("test.csv")
-	if err != nil {
-		logger.ERROR("No URLs found!")
-		return
-	}
+	// urls, err := util.ParseCSVForURLs("new.csv")
+	// if err != nil {
+	// 	logger.ERROR("No URLs found!")
+	// 	return
+	// }
 
-	logger.SUCCESS(fmt.Sprintf("Found %v URLs...", len(urls)))
+	feeds, err := schemas.GetFeeds(db.DB, bson.D{})
+	fmt.Println(feeds)
+
+	logger.INFO("Deduping feed URLS")
+
+	logger.SUCCESS(fmt.Sprintf("Found %v URLs...", len(feeds)))
 	logger.DepthIn()
 
 	var articleData = []map[string]string{}
 	var articleCount int
 
-	for i := range urls {
-		logger.INFO(fmt.Sprintf("Begin parse %v...", urls[i]))
+	for i := range feeds {
+		var feed *schemas.FeedExtractor = &schemas.FeedExtractor{}
+		feedBytes, _ := bson.Marshal(feeds[i])
+		bson.Unmarshal(feedBytes, feed)
+		logger.INFO(fmt.Sprintf("Begin parse %v...", feed.URL))
 
-		data, err := util.ParseFeedURL(urls[i])
+		data, err := util.ParseFeedURL(feed.URL)
 		if err != nil {
-			logger.ERROR(fmt.Sprintf("Can't parse %v!", urls[i]))
+			logger.ERROR(fmt.Sprintf("Can't parse %v!", feed.URL))
 			continue
 		}
 
@@ -53,7 +62,7 @@ func UpdateFeedsJob() {
 			payload := map[string]string{
 				"feedTitle":       data.Title,
 				"feedDescription": data.Description,
-				"feedURL":         urls[i],
+				"feedURL":         feed.URL,
 				"title":           util.StripHTMLTags(data.Items[j].Title),
 				"content":         util.StripHTMLTags(data.Items[j].Content),
 				"description":     util.StripHTMLTags(data.Items[j].Description),
