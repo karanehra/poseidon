@@ -25,12 +25,6 @@ func UpdateFeedsJob() {
 	logger.INFO("Starting Update Job...")
 	logger.DepthIn()
 
-	// urls, err := util.ParseCSVForURLs("new.csv")
-	// if err != nil {
-	// 	logger.ERROR("No URLs found!")
-	// 	return
-	// }
-
 	feeds, err := schemas.GetFeeds(db.DB, bson.D{})
 	fmt.Println(feeds)
 
@@ -43,9 +37,7 @@ func UpdateFeedsJob() {
 	var articleCount int
 
 	for i := range feeds {
-		var feed *schemas.FeedExtractor = &schemas.FeedExtractor{}
-		feedBytes, _ := bson.Marshal(feeds[i])
-		bson.Unmarshal(feedBytes, feed)
+		feed := feeds[i]
 		logger.INFO(fmt.Sprintf("Begin parse %v...", feed.URL))
 
 		data, err := util.ParseFeedURL(feed.URL)
