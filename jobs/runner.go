@@ -12,9 +12,9 @@ var CacheClient *cache.Client
 
 //LaunchRunner instantiates the ticker and defines the jobs to be done
 func LaunchRunner() {
-	UpdateFeedsJob()
+	DumpFeedsJob()
 	cronTicker := time.NewTicker(10 * time.Minute)
-	processTicker := time.NewTicker(5 * time.Second)
+	processTicker := time.NewTicker(5 * time.Minute)
 	CacheClient = &cache.Client{
 		Port:    3009,
 		BaseURL: "http://localhost",
