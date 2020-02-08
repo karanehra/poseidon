@@ -12,9 +12,8 @@ var CacheClient *cache.Client
 
 //LaunchRunner instantiates the ticker and defines the jobs to be done
 func LaunchRunner() {
-	DumpFeedsJob()
 	cronTicker := time.NewTicker(10 * time.Minute)
-	processTicker := time.NewTicker(5 * time.Minute)
+	processTicker := time.NewTicker(10 * time.Second)
 	CacheClient = &cache.Client{
 		Port:    3009,
 		BaseURL: "http://localhost",
@@ -29,7 +28,7 @@ func LaunchRunner() {
 			case <-cronTicker.C:
 				fmt.Println("heck")
 			case <-processTicker.C:
-				fmt.Println("heck")
+				go CheckForProcesses()
 			}
 		}
 	}()
