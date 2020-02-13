@@ -5,4 +5,5 @@ var ProcessMap map[string]func() = map[string]func(){
 	"UPDATE_FEEDS":    UpdateFeedsJob,
 	"CHECK_FOR_FEEDS": AddFeedsJob,
 	"DUMP_FEEDS":      DumpFeedsJob,
+	"DUMP_ARTICLES":   DumpArticlesJob,
 }

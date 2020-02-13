@@ -15,7 +15,6 @@ func CheckForProcesses() {
 	logger.INFO("Starting check for process job")
 	logger.DepthIn()
 	process := schemas.GetNewProcess(database.DB)
-	fmt.Println(process)
 	if process.Type == "" {
 		logger.INFO("No process found")
 		return
