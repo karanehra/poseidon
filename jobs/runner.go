@@ -11,6 +11,7 @@ var CacheClient *cache.Client
 
 //LaunchRunner instantiates the ticker and defines the jobs to be done
 func LaunchRunner() {
+	UpdateFeedsJob()
 	updateTicker := time.NewTicker(10 * time.Minute)
 	processTicker := time.NewTicker(10 * time.Second)
 	CacheClient = &cache.Client{

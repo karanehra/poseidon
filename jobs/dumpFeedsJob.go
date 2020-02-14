@@ -6,6 +6,7 @@ import (
 	"os"
 	"poseidon/db"
 	"poseidon/logger"
+	"strconv"
 	"strings"
 
 	"github.com/karanehra/schemas"
@@ -79,6 +80,7 @@ func DumpArticlesJob() {
 			articles[i].FeedDescription,
 			articles[i].FeedTitle,
 			articles[i].FeedURL,
+			strconv.Itoa(int(articles[i].CreatedAt)),
 		}
 		err = writer.Write(dataRow)
 		if err != nil {
