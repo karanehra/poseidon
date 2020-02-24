@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 	"unicode"
 
@@ -16,6 +17,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
+
+var articleData = []map[string]string{}
 
 //UpdateFeedsJob parses urls taken from a local csv and aggregates a data
 func UpdateFeedsJob() {
@@ -26,48 +29,47 @@ func UpdateFeedsJob() {
 	logger.DepthIn()
 
 	feeds, err := schemas.GetFeeds(db.DB, bson.D{})
-	fmt.Println(feeds)
 
-	logger.INFO("Deduping feed URLS")
-
-	logger.SUCCESS(fmt.Sprintf("Found %v URLs...", len(feeds)))
-	logger.DepthIn()
-
-	var articleData = []map[string]string{}
 	var articleCount int
+
+	var wg sync.WaitGroup
 
 	for i := range feeds {
 		feed := feeds[i]
 		logger.INFO(fmt.Sprintf("Begin parse %v...", feed.URL))
+		wg.Add(1)
+		go parseFeedWorker(feed.URL, &wg)
+		// data, err := util.ParseFeedURL(feed.URL)
+		// if err != nil {
+		// 	logger.ERROR(fmt.Sprintf("Can't parse %v!", feed.URL))
+		// 	continue
+		// }
 
-		data, err := util.ParseFeedURL(feed.URL)
-		if err != nil {
-			logger.ERROR(fmt.Sprintf("Can't parse %v!", feed.URL))
-			continue
-		}
+		// logger.SUCCESS(fmt.Sprintf("Parsed %v articles", len(data.Items)))
 
-		logger.SUCCESS(fmt.Sprintf("Parsed %v articles", len(data.Items)))
+		// var feedArticles []map[string]string = []map[string]string{}
 
-		var feedArticles []map[string]string = []map[string]string{}
+		// for j := range data.Items {
+		// 	payload := map[string]string{
+		// 		"feedTitle":       data.Title,
+		// 		"feedDescription": data.Description,
+		// 		"feedURL":         feed.URL,
+		// 		"title":           util.StripHTMLTags(data.Items[j].Title),
+		// 		"content":         util.StripHTMLTags(data.Items[j].Content),
+		// 		"description":     util.StripHTMLTags(data.Items[j].Description),
+		// 		"updated":         strconv.Itoa(int(time.Now().Unix() * 1000)),
+		// 		"created":         strconv.Itoa(int(time.Now().Unix() * 1000)),
+		// 		"URL":             util.StripHTMLTags(data.Items[j].Link),
+		// 	}
+		// 	feedArticles = append(feedArticles, payload)
+		// 	articleCount++
+		// }
 
-		for j := range data.Items {
-			payload := map[string]string{
-				"feedTitle":       data.Title,
-				"feedDescription": data.Description,
-				"feedURL":         feed.URL,
-				"title":           util.StripHTMLTags(data.Items[j].Title),
-				"content":         util.StripHTMLTags(data.Items[j].Content),
-				"description":     util.StripHTMLTags(data.Items[j].Description),
-				"updated":         strconv.Itoa(int(time.Now().Unix() * 1000)),
-				"created":         strconv.Itoa(int(time.Now().Unix() * 1000)),
-				"URL":             util.StripHTMLTags(data.Items[j].Link),
-			}
-			feedArticles = append(feedArticles, payload)
-			articleCount++
-		}
-
-		articleData = append(articleData, feedArticles...)
+		// articleData = append(articleData, feedArticles...)
 	}
+
+	wg.Wait()
+	logger.INFO("WG: finish")
 
 	logger.DepthOut()
 	logger.INFO(fmt.Sprintf("Created data payload for %v articles...", articleCount))
@@ -93,6 +95,7 @@ func UpdateFeedsJob() {
 				"URL":             articleData[i]["URL"],
 				"urlHash":         util.CreateHashSHA(articleData[i]["URL"]),
 			})
+			CacheClient.Set(util.CreateHashSHA(articleData[i]["URL"]), 1)
 		}
 	}
 
@@ -138,6 +141,34 @@ func updateTagDataFromString(data string, tagData map[string]int32) map[string]i
 	return tagData
 }
 
+func parseFeedWorker(url string, wg *sync.WaitGroup) {
+	fmt.Println("starting WG")
+	data, err := util.ParseFeedURL(url)
+	if err != nil {
+		wg.Done()
+		return
+	}
+
+	var feedArticles []map[string]string = []map[string]string{}
+
+	for j := range data.Items {
+		payload := map[string]string{
+			"feedTitle":       data.Title,
+			"feedDescription": data.Description,
+			"feedURL":         url,
+			"title":           util.StripHTMLTags(data.Items[j].Title),
+			"content":         util.StripHTMLTags(data.Items[j].Content),
+			"description":     util.StripHTMLTags(data.Items[j].Description),
+			"updated":         strconv.Itoa(int(time.Now().Unix() * 1000)),
+			"created":         strconv.Itoa(int(time.Now().Unix() * 1000)),
+			"URL":             util.StripHTMLTags(data.Items[j].Link),
+		}
+		feedArticles = append(feedArticles, payload)
+	}
+	articleData = append(articleData, feedArticles...)
+	wg.Done()
+}
+
 func doesArticleExist(hash string, coll *mongo.Collection) bool {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
@@ -146,6 +177,11 @@ func doesArticleExist(hash string, coll *mongo.Collection) bool {
 		return false
 	}
 	return true
+	// val, err := CacheClient.Get(hash)
+	// if val == nil || err != nil {
+	// 	return false
+	// }
+	// return true
 }
 
 func getStringTags(data string) []string {

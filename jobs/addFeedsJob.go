@@ -17,7 +17,7 @@ func AddFeedsJob() {
 	logger.INFO("Starting Add Feeds Job")
 	urls, err := util.ParseCSVForURLs("new.csv")
 	if err != nil {
-		logger.ERROR("Cant parse csv file")
+		logger.ERROR(err.Error())
 		return
 	}
 	logger.INFO(fmt.Sprintf("Found %v URLS in sources", len(urls)))
