@@ -18,7 +18,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var articleData = []map[string]string{}
+var articleData = make([]map[string]string, 100000)
+var articleCount int
 
 //UpdateFeedsJob parses urls taken from a local csv and aggregates a data
 func UpdateFeedsJob() {
@@ -30,8 +31,6 @@ func UpdateFeedsJob() {
 
 	feeds, err := schemas.GetFeeds(db.DB, bson.D{})
 
-	var articleCount int
-
 	var wg sync.WaitGroup
 
 	for i := range feeds {
@@ -39,33 +38,6 @@ func UpdateFeedsJob() {
 		logger.INFO(fmt.Sprintf("Begin parse %v...", feed.URL))
 		wg.Add(1)
 		go parseFeedWorker(feed.URL, &wg)
-		// data, err := util.ParseFeedURL(feed.URL)
-		// if err != nil {
-		// 	logger.ERROR(fmt.Sprintf("Can't parse %v!", feed.URL))
-		// 	continue
-		// }
-
-		// logger.SUCCESS(fmt.Sprintf("Parsed %v articles", len(data.Items)))
-
-		// var feedArticles []map[string]string = []map[string]string{}
-
-		// for j := range data.Items {
-		// 	payload := map[string]string{
-		// 		"feedTitle":       data.Title,
-		// 		"feedDescription": data.Description,
-		// 		"feedURL":         feed.URL,
-		// 		"title":           util.StripHTMLTags(data.Items[j].Title),
-		// 		"content":         util.StripHTMLTags(data.Items[j].Content),
-		// 		"description":     util.StripHTMLTags(data.Items[j].Description),
-		// 		"updated":         strconv.Itoa(int(time.Now().Unix() * 1000)),
-		// 		"created":         strconv.Itoa(int(time.Now().Unix() * 1000)),
-		// 		"URL":             util.StripHTMLTags(data.Items[j].Link),
-		// 	}
-		// 	feedArticles = append(feedArticles, payload)
-		// 	articleCount++
-		// }
-
-		// articleData = append(articleData, feedArticles...)
 	}
 
 	wg.Wait()
@@ -95,7 +67,6 @@ func UpdateFeedsJob() {
 				"URL":             articleData[i]["URL"],
 				"urlHash":         util.CreateHashSHA(articleData[i]["URL"]),
 			})
-			CacheClient.Set(util.CreateHashSHA(articleData[i]["URL"]), 1)
 		}
 	}
 
@@ -142,8 +113,8 @@ func updateTagDataFromString(data string, tagData map[string]int32) map[string]i
 }
 
 func parseFeedWorker(url string, wg *sync.WaitGroup) {
-	fmt.Println("starting WG")
 	data, err := util.ParseFeedURL(url)
+	lock := sync.Mutex{}
 	if err != nil {
 		wg.Done()
 		return
@@ -165,7 +136,10 @@ func parseFeedWorker(url string, wg *sync.WaitGroup) {
 		}
 		feedArticles = append(feedArticles, payload)
 	}
+	lock.Lock()
+	defer lock.Unlock()
 	articleData = append(articleData, feedArticles...)
+	articleCount++
 	wg.Done()
 }
 
