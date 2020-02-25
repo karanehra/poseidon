@@ -68,7 +68,7 @@ func UpdateFeedsJob() {
 				"URL":             articleData[i]["URL"],
 				"urlHash":         hash,
 			})
-			err = CacheClient.Set(hash, 1)
+			err = CacheClient.Set(hash, 1, 0)
 			if err != nil {
 				log.Fatal("Cache crash")
 			}
