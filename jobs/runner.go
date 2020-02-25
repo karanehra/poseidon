@@ -11,9 +11,6 @@ var CacheClient *cache.Client
 
 //LaunchRunner instantiates the ticker and defines the jobs to be done
 func LaunchRunner() {
-	UpdateFeedsJob()
-	updateTicker := time.NewTicker(50 * time.Minute)
-	processTicker := time.NewTicker(40 * time.Minute)
 	CacheClient = &cache.Client{
 		Port:    3009,
 		BaseURL: "http://localhost",
@@ -22,6 +19,16 @@ func LaunchRunner() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	err = CacheClient.Set("datatest", "adadsad")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	UpdateFeedsJob()
+
+	updateTicker := time.NewTicker(500 * time.Minute)
+	processTicker := time.NewTicker(40 * time.Minute)
+
 	go func() {
 		for {
 			select {

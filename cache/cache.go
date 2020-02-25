@@ -30,7 +30,7 @@ type Entry struct {
 //Create checks for a connection with the vapour server
 func (client *Client) Create() error {
 	client.createURLs()
-	client.Instance = &http.Client{Timeout: 1 * time.Second}
+	client.Instance = &http.Client{Timeout: 5 * time.Second}
 	req, _ := http.NewRequest("GET", client.StatusCheck, nil)
 	res, err := client.Instance.Do(req)
 	if err != nil {
@@ -49,7 +49,7 @@ func (client *Client) createURLs() {
 }
 
 func (client *Client) createGetURL(key string) string {
-	return client.BaseURL + key
+	return client.GetKeyURL + key
 }
 
 //Get returns a key value from the cache
@@ -64,7 +64,12 @@ func (client *Client) Get(key string) (interface{}, error) {
 			return nil, errors.New("Cache: GET failed")
 		}
 	}
-	return nil, nil
+	type data struct {
+		Value interface{} `json:"value"`
+	}
+	resp := data{}
+	json.NewDecoder(res.Body).Decode(&resp)
+	return resp.Value, nil
 }
 
 //Set puts a key value to the cache

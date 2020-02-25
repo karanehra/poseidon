@@ -3,6 +3,7 @@ package jobs
 import (
 	"context"
 	"fmt"
+	"log"
 	"poseidon/db"
 	"poseidon/logger"
 	"poseidon/util"
@@ -53,8 +54,9 @@ func UpdateFeedsJob() {
 
 	logger.INFO("Deduping and Creating Bulk Insert Payload..")
 
-	for i := range articleData {
-		if !doesArticleExist(util.CreateHashSHA(articleData[i]["URL"]), coll) {
+	for i := 0; i < articleCount; i++ {
+		hash := util.CreateHashSHA(articleData[i]["URL"])
+		if !doesArticleExist(hash, coll) {
 			documents = append(documents, bson.M{
 				"feedTitle":       articleData[i]["feedTitle"],
 				"feedDescription": articleData[i]["feedDescription"],
@@ -65,8 +67,12 @@ func UpdateFeedsJob() {
 				"updated":         articleData[i]["updated"],
 				"created":         articleData[i]["created"],
 				"URL":             articleData[i]["URL"],
-				"urlHash":         util.CreateHashSHA(articleData[i]["URL"]),
+				"urlHash":         hash,
 			})
+			err = CacheClient.Set(hash, 1)
+			if err != nil {
+				log.Fatal("Cache crash")
+			}
 		}
 	}
 
@@ -139,23 +145,17 @@ func parseFeedWorker(url string, wg *sync.WaitGroup) {
 	lock.Lock()
 	defer lock.Unlock()
 	articleData = append(articleData, feedArticles...)
-	articleCount++
+	articleCount += len(feedArticles)
 	wg.Done()
 }
 
 func doesArticleExist(hash string, coll *mongo.Collection) bool {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancel()
-	result := coll.FindOne(ctx, bson.M{"urlHash": hash})
-	if result.Err() != nil {
+	val, err := CacheClient.Get(hash)
+	fmt.Println(val)
+	if val == nil || err != nil {
 		return false
 	}
 	return true
-	// val, err := CacheClient.Get(hash)
-	// if val == nil || err != nil {
-	// 	return false
-	// }
-	// return true
 }
 
 func getStringTags(data string) []string {
