@@ -73,11 +73,11 @@ func (client *Client) Get(key string) (interface{}, error) {
 }
 
 //Set puts a key value to the cache
-func (client *Client) Set(key string, value interface{}) error {
+func (client *Client) Set(key string, value interface{}, expiry int) error {
 	payload, err := json.Marshal(map[string]interface{}{
 		"key":    key,
 		"value":  value,
-		"expiry": 0,
+		"expiry": expiry,
 	})
 	if err != nil {
 		return err

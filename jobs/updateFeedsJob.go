@@ -36,7 +36,6 @@ func UpdateFeedsJob() {
 
 	for i := range feeds {
 		feed := feeds[i]
-		logger.INFO(fmt.Sprintf("Begin parse %v...", feed.URL))
 		wg.Add(1)
 		go parseFeedWorker(feed.URL, &wg)
 	}
@@ -151,7 +150,6 @@ func parseFeedWorker(url string, wg *sync.WaitGroup) {
 
 func doesArticleExist(hash string, coll *mongo.Collection) bool {
 	val, err := CacheClient.Get(hash)
-	fmt.Println(val)
 	if val == nil || err != nil {
 		return false
 	}

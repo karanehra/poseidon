@@ -19,14 +19,12 @@ func LaunchRunner() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = CacheClient.Set("datatest", "adadsad")
+	err = CacheClient.Set("datatest", "adadsad", 0)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	UpdateFeedsJob()
-
-	updateTicker := time.NewTicker(500 * time.Minute)
+	updateTicker := time.NewTicker(30 * time.Minute)
 	processTicker := time.NewTicker(40 * time.Minute)
 
 	go func() {
