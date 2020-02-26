@@ -19,7 +19,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var articleData = make([]map[string]string, 100000)
+var articleData = []map[string]string{}
 var articleCount int
 
 //UpdateFeedsJob parses urls taken from a local csv and aggregates a data
@@ -53,7 +53,7 @@ func UpdateFeedsJob() {
 
 	logger.INFO("Deduping and Creating Bulk Insert Payload..")
 
-	for i := 0; i < articleCount; i++ {
+	for i := 0; i < len(articleData); i++ {
 		hash := util.CreateHashSHA(articleData[i]["URL"])
 		if !doesArticleExist(hash, coll) {
 			documents = append(documents, bson.M{
