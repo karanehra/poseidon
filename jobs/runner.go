@@ -3,6 +3,7 @@ package jobs
 import (
 	"log"
 	"poseidon/cache"
+	"time"
 )
 
 //CacheClient is the central cache client
@@ -18,19 +19,18 @@ func LaunchRunner() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	UpdateFeedsJob()
 
-	// updateTicker := time.NewTicker(30 * time.Minute)
-	// processTicker := time.NewTicker(40 * time.Minute)
+	updateTicker := time.NewTicker(30 * time.Minute)
+	processTicker := time.NewTicker(5 * time.Minute)
 
-	// go func() {
-	// 	for {
-	// 		select {
-	// 		case <-updateTicker.C:
-	// 			go UpdateFeedsJob()
-	// 		case <-processTicker.C:
-	// 			go CheckForProcesses()
-	// 		}
-	// 	}
-	// }()
+	go func() {
+		for {
+			select {
+			case <-updateTicker.C:
+				go UpdateFeedsJob()
+			case <-processTicker.C:
+				go CheckForProcesses()
+			}
+		}
+	}()
 }
