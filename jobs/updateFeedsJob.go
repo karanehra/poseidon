@@ -151,7 +151,13 @@ func parseFeedWorker(url string, wg *sync.WaitGroup) {
 func doesArticleExist(hash string, coll *mongo.Collection) bool {
 	val, err := CacheClient.Get(hash)
 	if val == nil || err != nil {
-		return false
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+		result := coll.FindOne(ctx, bson.M{"urlHash": hash})
+		if result.Err() != nil {
+			return false
+		}
+		return true
 	}
 	return true
 }
