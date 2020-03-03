@@ -20,7 +20,7 @@ func LaunchRunner() {
 		log.Fatal(err)
 	}
 
-	updateTicker := time.NewTicker(30 * time.Minute)
+	updateTicker := time.NewTicker(60 * time.Minute)
 	processTicker := time.NewTicker(5 * time.Minute)
 
 	go func() {

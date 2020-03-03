@@ -34,7 +34,8 @@ func UpdateFeedsJob() {
 
 	var wg sync.WaitGroup
 
-	for i := range feeds {
+	// for i := range feeds {
+	for i := 0; i < 20; i++ {
 		feed := feeds[i]
 		wg.Add(1)
 		go parseFeedWorker(feed.URL, &wg)
@@ -156,6 +157,10 @@ func doesArticleExist(hash string, coll *mongo.Collection) bool {
 		result := coll.FindOne(ctx, bson.M{"urlHash": hash})
 		if result.Err() != nil {
 			return false
+		}
+		err = CacheClient.Set(hash, 1, 0)
+		if err != nil {
+			log.Fatal("Cache crash")
 		}
 		return true
 	}
