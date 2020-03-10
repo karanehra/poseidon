@@ -62,7 +62,7 @@ func AddFeedsJob() {
 
 func doesFeedExist(URL string) bool {
 	coll := database.DB.Collection("feeds")
-	result := coll.FindOne(context.TODO(), bson.M{"URL": URL})
+	result := coll.FindOne(context.TODO(), bson.M{"url": URL})
 	if result.Err() != nil {
 		return false
 	}

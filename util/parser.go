@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -15,7 +16,20 @@ import (
 //ParseFeedURL uses gofeed to fetch the rss feed contents
 func ParseFeedURL(url string) (*gofeed.Feed, error) {
 	fp := gofeed.NewParser()
-	feed, err := fp.ParseURL(url)
+	client := http.Client{}
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36")
+	resp, err := client.Do(req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	feed, err := fp.Parse(resp.Body)
 	if err != nil {
 		fmt.Println(err)
 		return nil, err

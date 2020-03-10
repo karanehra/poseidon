@@ -19,8 +19,9 @@ func LaunchRunner() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	go UpdateFeedsJob()
 
-	updateTicker := time.NewTicker(60 * time.Minute)
+	updateTicker := time.NewTicker(30 * time.Minute)
 	processTicker := time.NewTicker(5 * time.Minute)
 
 	go func() {

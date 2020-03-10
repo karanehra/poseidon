@@ -34,8 +34,8 @@ func UpdateFeedsJob() {
 
 	var wg sync.WaitGroup
 
-	// for i := range feeds {
-	for i := 0; i < 20; i++ {
+	for i := range feeds {
+		// for i := 0; i < 20; i++ {
 		feed := feeds[i]
 		wg.Add(1)
 		go parseFeedWorker(feed.URL, &wg)
