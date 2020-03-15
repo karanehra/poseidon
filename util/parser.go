@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/mmcdole/gofeed"
 )
@@ -16,7 +17,7 @@ import (
 //ParseFeedURL uses gofeed to fetch the rss feed contents
 func ParseFeedURL(url string) (*gofeed.Feed, error) {
 	fp := gofeed.NewParser()
-	client := http.Client{}
+	client := http.Client{Timeout: 30 * time.Second}
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
