@@ -63,3 +63,30 @@ func ParseCSVForURLs(fileName string) ([]string, error) {
 	}
 	return urlSet, nil
 }
+
+//ParseCSVForUAs reads a local csv for User agents
+func ParseCSVForUAs(fileName string) ([]string, error) {
+	uaSet := []string{}
+	pwd, _ := os.Getwd()
+	url := filepath.Join(pwd, fileName)
+	csvData, err := ioutil.ReadFile(url)
+	if err != nil {
+		fmt.Println("Error reading file")
+		return nil, err
+	}
+	dataString := string(csvData)
+	reader := csv.NewReader(strings.NewReader(dataString))
+	reader.Comma = rune('|')
+	for {
+		url, err := reader.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			fmt.Println("Error occured reading csv")
+			return nil, err
+		}
+		uaSet = append(uaSet, url[0])
+	}
+	return uaSet, nil
+}
