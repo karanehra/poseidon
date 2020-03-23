@@ -38,7 +38,7 @@ func AddFeedsJob() {
 
 	var feedDocuments = []interface{}{}
 	for i := range newFeeds {
-		data, err := util.ParseFeedURL(newFeeds[i])
+		data, err := util.ParseFeedURL(newFeeds[i], pickRandomUA())
 		if err != nil {
 			logger.ERROR("Cant parse URL")
 			continue

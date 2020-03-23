@@ -15,7 +15,10 @@ import (
 )
 
 //ParseFeedURL uses gofeed to fetch the rss feed contents
-func ParseFeedURL(url string) (*gofeed.Feed, error) {
+func ParseFeedURL(url string, ua string) (*gofeed.Feed, error) {
+	if ua == "" {
+		ua = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36"
+	}
 	fp := gofeed.NewParser()
 	client := http.Client{Timeout: 30 * time.Second}
 
@@ -23,7 +26,7 @@ func ParseFeedURL(url string) (*gofeed.Feed, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36")
+	req.Header.Set("User-Agent", ua)
 	resp, err := client.Do(req)
 
 	if err != nil {

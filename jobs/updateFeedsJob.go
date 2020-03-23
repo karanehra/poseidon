@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/rand"
 	"poseidon/db"
 	"poseidon/logger"
 	"poseidon/util"
@@ -119,7 +120,7 @@ func updateTagDataFromString(data string, tagData map[string]int32) map[string]i
 }
 
 func parseFeedWorker(url string, wg *sync.WaitGroup) {
-	data, err := util.ParseFeedURL(url)
+	data, err := util.ParseFeedURL(url, pickRandomUA())
 	lock := sync.Mutex{}
 	if err != nil {
 		wg.Done()
@@ -152,17 +153,18 @@ func parseFeedWorker(url string, wg *sync.WaitGroup) {
 func doesArticleExist(hash string, coll *mongo.Collection) bool {
 	val, err := CacheClient.Get(hash)
 	if val == nil || err != nil {
-		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-		defer cancel()
-		result := coll.FindOne(ctx, bson.M{"urlHash": hash})
-		if result.Err() != nil {
-			return false
-		}
-		err = CacheClient.Set(hash, 1, 0)
-		if err != nil {
-			log.Fatal("Cache crash")
-		}
-		return true
+		// This below is a DB dedupe. Slows down immensly. Use only when the cache has failed
+		// ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		// defer cancel()
+		// result := coll.FindOne(ctx, bson.M{"urlHash": hash})
+		// if result.Err() != nil {
+		// 	return false
+		// }
+		// err = CacheClient.Set(hash, 1, 0)
+		// if err != nil {
+		// 	log.Fatal("Cache crash")
+		// }
+		return false
 	}
 	return true
 }
@@ -198,4 +200,10 @@ func cleanTags(tags []string) []string {
 
 func isTagRejected(tag string) bool {
 	return util.RejectedTagsMap[tag]
+}
+
+func pickRandomUA() string {
+	randomSeed := rand.NewSource(time.Now().UnixNano())
+	randGen := rand.New(randomSeed)
+	return UaMasterList[randGen.Intn(len(UaMasterList))]
 }

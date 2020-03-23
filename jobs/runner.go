@@ -25,9 +25,9 @@ func LaunchRunner() {
 	}
 	go UpdateFeedsJob()
 
-	UaMasterList, _ = util.ParseCSVForUAs("ca.csv")
+	UaMasterList, _ = util.ParseCSVForUAs("ua.csv")
 
-	updateTicker := time.NewTicker(30 * time.Minute)
+	updateTicker := time.NewTicker(60 * time.Minute)
 	processTicker := time.NewTicker(5 * time.Minute)
 
 	go func() {
