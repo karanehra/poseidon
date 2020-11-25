@@ -1,10 +1,7 @@
 package main
 
-import (
-	"poseidon/jobs"
-)
+import "fmt"
 
 func main() {
-	jobs.LaunchRunner()
-	select {}
+	fmt.Println("Lets go")
 }

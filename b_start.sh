@@ -1,2 +1,3 @@
 go build
-export 
+export MONGO_DB_URL=''
+./poseidon
