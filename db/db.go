@@ -11,10 +11,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-//DB is our main mongo database instance
-var DB *mongo.Database
+//Instance is our main mongo database instance
+var Instance *mongo.Database
 
-//Connects to given mongoDB instance and makes it available for the application
+//InitializeDatabase connects to given mongoDB instance and makes it available for the application
 func InitializeDatabase() {
 	databaseClientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
 	mongoClient, err := mongo.NewClient(databaseClientOptions)
@@ -27,8 +27,8 @@ func InitializeDatabase() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	DB = mongoClient.Database("brutus")
-	data, err := DB.Client().ListDatabases(context, bson.D{})
+	Instance = mongoClient.Database("brutus")
+	data, err := Instance.Client().ListDatabases(context, bson.D{})
 	// data, err := DB.ListCollectionNames(context, bson.D{})
 	fmt.Println(data)
 	fmt.Println("Database Connection Success")
