@@ -3,12 +3,12 @@ package main
 import (
 	"fmt"
 	"poseidon/db"
+	"poseidon/runner"
 )
 
 func main() {
 	fmt.Println("Lets go")
 	db.InitializeDatabase()
-	//This select keeps the process running
-	checkJobs()
+	runner.InitializeJobMaster()
 	select {}
 }

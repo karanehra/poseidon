@@ -1,8 +1,7 @@
-package main
+package runner
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"poseidon/db"
 	"poseidon/util"
@@ -10,7 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-func checkJobs() {
+func checkJobs() ([]bson.M, error) {
 	collections, err := db.Instance.ListCollectionNames(context.TODO(), bson.D{})
 	if err != nil {
 		log.Fatal(err)
@@ -27,5 +26,5 @@ func checkJobs() {
 	}
 	var results []bson.M
 	err = cur.All(context.TODO(), &results)
-	fmt.Printf("%d jobs available", len(results))
+	return results, err
 }
