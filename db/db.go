@@ -4,23 +4,19 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 	"time"
 
-	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/bson"
+	mongo "go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-//DB is a mongo database instance
-var DB *mongo.Database
+//Instance is our main mongo database instance
+var Instance *mongo.Database
 
-func init() {
-	mongoDBUri := os.Getenv("MONGO_DB_URL")
-	if mongoDBUri == "" {
-		log.Fatal("Env Variable MONGO_DB_URL not specified")
-	}
-
-	databaseClientOptions := options.Client().ApplyURI(mongoDBUri)
+//InitializeDatabase connects to given mongoDB instance and makes it available for the application
+func InitializeDatabase() {
+	databaseClientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
 	mongoClient, err := mongo.NewClient(databaseClientOptions)
 	if err != nil {
 		log.Fatal(err)
@@ -31,10 +27,9 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	mongoDBName := os.Getenv("MONGO_DB_NAME")
-	if mongoDBName == "" {
-		log.Fatal("Env Variable MONGO_DB_NAME not specified")
-	}
-	DB = mongoClient.Database(mongoDBName)
+	Instance = mongoClient.Database("brutus")
+	data, err := Instance.Client().ListDatabases(context, bson.D{})
+	// data, err := DB.ListCollectionNames(context, bson.D{})
+	fmt.Println(data)
 	fmt.Println("Database Connection Success")
 }

@@ -1,10 +1,14 @@
 package main
 
 import (
-	"poseidon/jobs"
+	"fmt"
+	"poseidon/db"
+	"poseidon/runner"
 )
 
 func main() {
-	jobs.LaunchRunner()
+	fmt.Println("Lets go")
+	db.InitializeDatabase()
+	runner.InitializeJobMaster()
 	select {}
 }
