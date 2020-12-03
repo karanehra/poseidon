@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"poseidon/db"
+	"poseidon/util"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -37,12 +39,45 @@ func addFeedsJob(jobInfo primitive.M) {
 	}
 }
 
+func doesRssFeedExist(url string) bool {
+	rssFeedsColl := db.Instance.Collection("rssFeeds")
+
+	result := rssFeedsColl.FindOne(context.TODO(), bson.D{})
+	return result.Err() == nil
+}
+
 func addRssFeedToSources(url string) {
-	fmt.Println(url)
+	if !doesRssFeedExist(url) {
+		data, err := util.ParseFeedURL(url, "")
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			rssFeedDocument := bson.D{{"title", data.Title}, {"description", data.Description}, {"url", url}}
+			rssFeedsColl := db.Instance.Collection("rssFeeds")
+			rssFeedsColl.InsertOne(context.TODO(), rssFeedDocument)
+		}
+	}
 }
 
 func updateFeedsJob() {
-	fmt.Println("Update feed job executed")
+	rssFeedsColl := db.Instance.Collection("rssFeeds")
+	cur, err := rssFeedsColl.Find(context.TODO(), bson.D{})
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	var results []bson.M
+	err = cur.All(context.TODO(), &results)
+
+	var urls []string
+	for _, v := range results {
+		url := v["url"]
+		if url != nil {
+			urls = append(urls, url.(string))
+		}
+	}
+
+	fmt.Printf("Total URLs found, %d", len(urls))
 }
 
 func executeJob(job primitive.M) {

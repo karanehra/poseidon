@@ -35,36 +35,9 @@ func ParseFeedURL(url string, ua string) (*gofeed.Feed, error) {
 
 	feed, err := fp.Parse(resp.Body)
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
 	return feed, err
-}
-
-//ParseCSVForURLs reads a local csv for url sources
-func ParseCSVForURLs(fileName string) ([]string, error) {
-	urlSet := []string{}
-	pwd, _ := os.Getwd()
-	url := filepath.Join(pwd, fileName)
-	csvData, err := ioutil.ReadFile(url)
-	if err != nil {
-		fmt.Println("Error reading file")
-		return nil, err
-	}
-	dataString := string(csvData)
-	reader := csv.NewReader(strings.NewReader(dataString))
-	for {
-		url, err := reader.Read()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			fmt.Println("Error occured reading csv")
-			return nil, err
-		}
-		urlSet = append(urlSet, url[0])
-	}
-	return urlSet, nil
 }
 
 //ParseCSVForUAs reads a local csv for User agents
