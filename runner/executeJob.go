@@ -69,15 +69,28 @@ func updateFeedsJob() {
 	var results []bson.M
 	err = cur.All(context.TODO(), &results)
 
-	var urls []string
-	for _, v := range results {
-		url := v["url"]
-		if url != nil {
-			urls = append(urls, url.(string))
+	fmt.Printf("Total URLs found, %d", len(urls))
+}
+
+func saveItemsFromRssFeed(feedData bson.M) {
+	feedURL := feedData["url"]
+	if feedURL != nil {
+		data, err := util.ParseFeedURL(feedURL.(string), "")
+		if err != nil {
+			fmt.Println("Error while getting rss data")
+		} else {
+			items := data.Items
+
+			for _,v := range items {
+				payload:= bson.D{
+					{"title", v.Title},
+					{"description", v.Description}
+					{"feedID", }
+				}
+			}
 		}
 	}
 
-	fmt.Printf("Total URLs found, %d", len(urls))
 }
 
 func executeJob(job primitive.M) {
