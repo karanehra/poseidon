@@ -8,9 +8,10 @@ import (
 	"poseidon/util"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func updateFeedsJob() {
+func updateFeedsJob(job primitive.M) {
 	rssFeedsColl := db.Instance.Collection("rssFeeds")
 	cur, err := rssFeedsColl.Find(context.TODO(), bson.D{})
 
@@ -45,17 +46,22 @@ func saveItemsFromRssFeed(feedData bson.M) {
 				payload := bson.D{
 					{"title", v.Title},
 					{"description", v.Description},
-					{"feedID", feedID.(string)},
+					{"url", v.Link},
+					{"feedID", util.ObjectIDToHexString(feedID)},
 				}
 				articlesPayload = append(articlesPayload, payload)
 			}
 		}
 	}
 
-	res, err := articleColl.InsertMany(context.TODO(), articlesPayload)
-	if err != nil {
-		fmt.Println("Error While Article insert", err)
+	if len(articlesPayload) > 0 {
+		res, err := articleColl.InsertMany(context.TODO(), articlesPayload)
+		if err != nil {
+			fmt.Println("Error While Article insert", err)
+		} else {
+			fmt.Println(res)
+		}
 	} else {
-		fmt.Println(res)
+		fmt.Println("No articles to insert found")
 	}
 }
