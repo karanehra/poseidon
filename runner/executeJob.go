@@ -2,11 +2,8 @@ package runner
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"log"
 	"poseidon/db"
-	"poseidon/util"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -15,82 +12,6 @@ import (
 var jobMap map[string]interface{} = map[string]interface{}{
 	"ADD_FEEDS":    addFeedsJob,
 	"UPDATE_FEEDS": updateFeedsJob,
-}
-
-func addFeedsJob(jobInfo primitive.M) {
-	params := []byte(jobInfo["parameters"].(string))
-
-	type FeedData struct {
-		Feeds []string `json:"feeds"`
-	}
-
-	data := FeedData{}
-
-	err := json.Unmarshal(params, &data)
-
-	if err == nil {
-		if len(data.Feeds) > 0 {
-			for _, v := range data.Feeds {
-				go addRssFeedToSources(v)
-			}
-		}
-	} else {
-		fmt.Println("Incorrect parameters for ADD_FEEDS job")
-	}
-}
-
-func doesRssFeedExist(url string) bool {
-	rssFeedsColl := db.Instance.Collection("rssFeeds")
-
-	result := rssFeedsColl.FindOne(context.TODO(), bson.D{})
-	return result.Err() == nil
-}
-
-func addRssFeedToSources(url string) {
-	if !doesRssFeedExist(url) {
-		data, err := util.ParseFeedURL(url, "")
-		if err != nil {
-			fmt.Println(err)
-		} else {
-			rssFeedDocument := bson.D{{"title", data.Title}, {"description", data.Description}, {"url", url}}
-			rssFeedsColl := db.Instance.Collection("rssFeeds")
-			rssFeedsColl.InsertOne(context.TODO(), rssFeedDocument)
-		}
-	}
-}
-
-func updateFeedsJob() {
-	rssFeedsColl := db.Instance.Collection("rssFeeds")
-	cur, err := rssFeedsColl.Find(context.TODO(), bson.D{})
-
-	if err != nil {
-		log.Fatal(err)
-	}
-	var results []bson.M
-	err = cur.All(context.TODO(), &results)
-
-	fmt.Printf("Total URLs found, %d", len(urls))
-}
-
-func saveItemsFromRssFeed(feedData bson.M) {
-	feedURL := feedData["url"]
-	if feedURL != nil {
-		data, err := util.ParseFeedURL(feedURL.(string), "")
-		if err != nil {
-			fmt.Println("Error while getting rss data")
-		} else {
-			items := data.Items
-
-			for _,v := range items {
-				payload:= bson.D{
-					{"title", v.Title},
-					{"description", v.Description}
-					{"feedID", }
-				}
-			}
-		}
-	}
-
 }
 
 func executeJob(job primitive.M) {
