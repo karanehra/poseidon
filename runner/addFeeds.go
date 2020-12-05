@@ -5,32 +5,44 @@ import (
 	"encoding/json"
 	"fmt"
 	"poseidon/db"
+	"poseidon/services"
 	"poseidon/util"
+	"sync"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func addFeedsJob(jobInfo primitive.M) {
-	params := []byte(jobInfo["parameters"].(string))
+func addFeedsJob(job primitive.M) {
+	wg := sync.WaitGroup{}
 
-	type FeedData struct {
-		Feeds []string `json:"feeds"`
-	}
+	if job["parameters"] != nil {
+		params := []byte(job["parameters"].(string))
 
-	data := FeedData{}
-
-	err := json.Unmarshal(params, &data)
-
-	if err == nil {
-		if len(data.Feeds) > 0 {
-			for _, v := range data.Feeds {
-				go addRssFeedToSources(v)
-			}
+		type FeedData struct {
+			Feeds []string `json:"feeds"`
 		}
-	} else {
-		fmt.Println("Incorrect parameters for ADD_FEEDS job")
+
+		data := FeedData{}
+
+		err := json.Unmarshal(params, &data)
+
+		if err == nil {
+			if len(data.Feeds) > 0 {
+				for _, v := range data.Feeds {
+					wg.Add(1)
+					go addRssFeedToSources(v, &wg)
+				}
+
+				wg.Wait()
+
+				services.SetJobStatusInDB(job, "FINISHED")
+			}
+		} else {
+			fmt.Println("Incorrect parameters for ADD_FEEDS job")
+		}
 	}
+
 }
 
 func doesRssFeedExist(url string) bool {
@@ -40,7 +52,7 @@ func doesRssFeedExist(url string) bool {
 	return result.Err() == nil
 }
 
-func addRssFeedToSources(url string) {
+func addRssFeedToSources(url string, wg *sync.WaitGroup) {
 	if !doesRssFeedExist(url) {
 		data, err := util.ParseFeedURL(url, "")
 		if err != nil {
@@ -51,4 +63,5 @@ func addRssFeedToSources(url string) {
 			rssFeedsColl.InsertOne(context.TODO(), rssFeedDocument)
 		}
 	}
+	wg.Done()
 }

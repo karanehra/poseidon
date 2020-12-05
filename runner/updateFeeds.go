@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"poseidon/db"
+	"poseidon/services"
 	"poseidon/util"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -26,6 +27,8 @@ func updateFeedsJob(job primitive.M) {
 			saveItemsFromRssFeed(feed)
 		}
 	}
+
+	services.SetJobStatusInDB(job, "FINISHED")
 }
 
 func saveItemsFromRssFeed(feedData bson.M) {
