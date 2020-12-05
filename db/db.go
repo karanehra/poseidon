@@ -28,8 +28,7 @@ func InitializeDatabase() {
 		log.Fatal(err)
 	}
 	Instance = mongoClient.Database("brutus")
-	data, err := Instance.Client().ListDatabases(context, bson.D{})
-	// data, err := DB.ListCollectionNames(context, bson.D{})
-	fmt.Println(data)
+	Instance.Collection("articles").Indexes().CreateOne(context, mongo.IndexModel{Keys: bson.M{"url": 1}, Options: options.Index().SetUnique((true))})
+
 	fmt.Println("Database Connection Success")
 }

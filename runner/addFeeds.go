@@ -43,6 +43,7 @@ func addFeedsJob(job primitive.M) {
 		}
 	}
 
+	services.SetJobStatusInDB(job, "FAILED")
 }
 
 func doesRssFeedExist(url string) bool {
