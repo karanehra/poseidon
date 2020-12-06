@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"poseidon/db"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -27,6 +28,8 @@ func AppendLogsToJob(job primitive.M, log string) error {
 	filter := bson.M{"_id": job["_id"]}
 
 	currentLog := job["log"]
+
+	fmt.Println("test", currentLog)
 
 	if currentLog == nil {
 		currentLog = ""
