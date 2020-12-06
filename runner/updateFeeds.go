@@ -13,6 +13,8 @@ import (
 )
 
 func updateFeedsJob(job primitive.M) {
+	services.AppendLogsToJob(job, "Starting...")
+
 	rssFeedsColl := db.Instance.Collection("rssFeeds")
 	cur, err := rssFeedsColl.Find(context.TODO(), bson.D{})
 
@@ -23,11 +25,13 @@ func updateFeedsJob(job primitive.M) {
 	err = cur.All(context.TODO(), &feeds)
 
 	if len(feeds) > 0 {
+		services.AppendLogsToJob(job, fmt.Sprintf("Saving items from %d feeds", len(feeds)))
+
 		for _, feed := range feeds {
 			saveItemsFromRssFeed(feed)
 		}
 	}
-
+	services.AppendLogsToJob(job, "Finished!")
 	services.SetJobStatusInDB(job, "FINISHED")
 }
 

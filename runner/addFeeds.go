@@ -14,6 +14,8 @@ import (
 )
 
 func addFeedsJob(job primitive.M) {
+	services.AppendLogsToJob(job, "Starting...")
+
 	wg := sync.WaitGroup{}
 
 	if job["parameters"] != nil {
@@ -36,13 +38,15 @@ func addFeedsJob(job primitive.M) {
 
 				wg.Wait()
 
+				services.AppendLogsToJob(job, "Finished Successfully!")
 				services.SetJobStatusInDB(job, "FINISHED")
 			}
 		} else {
-			fmt.Println("Incorrect parameters for ADD_FEEDS job")
+			services.AppendLogsToJob(job, "Incorrect parameters for ADD_FEEDS job")
 		}
 	}
 
+	services.AppendLogsToJob(job, "Failed!")
 	services.SetJobStatusInDB(job, "FAILED")
 }
 
