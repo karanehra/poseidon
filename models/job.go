@@ -29,3 +29,18 @@ func (job *Job) updateStatus(status string) error {
 	decodeError := coll.FindOneAndUpdate(context.TODO(), filter, update).Decode(data)
 	return decodeError
 }
+
+func (job *Job) addLog(logLine string) error {
+	coll := db.Instance.Collection("jobs")
+	filter := bson.M{"_id": job.ID}
+
+	currentLog := job.Log
+
+	update := bson.M{
+		"$set": bson.M{"log": currentLog + "\n" + logLine},
+	}
+
+	data := &bson.D{}
+	decodeError := coll.FindOneAndUpdate(context.TODO(), filter, update).Decode(data)
+	return decodeError
+}
