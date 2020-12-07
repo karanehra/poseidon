@@ -16,13 +16,18 @@ func InitializeJobMaster() {
 				fmt.Println("Checking for jobs")
 				availableJobs, err := checkJobs()
 				if err != nil {
-					fmt.Println("Unable to check for jobs")
+					fmt.Println(err)
 				} else {
-					fmt.Printf("Jobs found: %d,\n", len(availableJobs))
-					for _, job := range availableJobs {
-						go executeJob(job)
-					}
+					fmt.Println(availableJobs)
 				}
+				// if err != nil {
+				// 	fmt.Println("Unable to check for jobs")
+				// } else {
+				// 	fmt.Printf("Jobs found: %d,\n", len(availableJobs))
+				// 	for _, job := range availableJobs {
+				// 		go executeJob(job)
+				// 	}
+				// }
 			}
 		}
 	}()

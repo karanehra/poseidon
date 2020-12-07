@@ -4,12 +4,13 @@ import (
 	"context"
 	"log"
 	"poseidon/db"
+	"poseidon/models"
 	"poseidon/util"
 
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-func checkJobs() ([]bson.M, error) {
+func checkJobs() ([]models.Job, error) {
 	collections, err := db.Instance.ListCollectionNames(context.TODO(), bson.D{})
 	if err != nil {
 		log.Fatal(err)
@@ -24,7 +25,8 @@ func checkJobs() ([]bson.M, error) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	var results []bson.M
+	var results []models.Job
 	err = cur.All(context.TODO(), &results)
+
 	return results, err
 }

@@ -10,12 +10,12 @@ import (
 
 //Job defines the schema of a job and used to hold common util methods
 type Job struct {
-	ID        primitive.ObjectID  `json:"_id" bson:"_id"`
-	Name      string              `json:"name" bson:"name"`
-	Status    string              `json:"status" bson:"status"`
-	Log       string              `json:"log" bson:"log"`
-	CreatedAt primitive.Timestamp `json:"createdAt" bson:"createdAt"`
-	UpdatedAt primitive.Timestamp `json:"updatedAt" bson:"updatedAt"`
+	ID        primitive.ObjectID `json:"_id" bson:"_id"`
+	Name      string             `json:"name" bson:"name"`
+	Status    string             `json:"status" bson:"status"`
+	Log       string             `json:"log" bson:"log"`
+	CreatedAt primitive.DateTime `json:"createdAt" bson:"createdAt"`
+	UpdatedAt primitive.DateTime `json:"updatedAt" bson:"updatedAt"`
 }
 
 func (job *Job) updateStatus(status string) error {
