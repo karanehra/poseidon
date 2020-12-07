@@ -5,18 +5,18 @@ import (
 	"encoding/json"
 	"fmt"
 	"poseidon/db"
+	"poseidon/models"
 	"poseidon/util"
 	"sync"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func addFeedsJob(job primitive.M) {
+func addFeedsJob(job models.Job) {
 	wg := sync.WaitGroup{}
 
-	if job["parameters"] != nil {
-		params := []byte(job["parameters"].(string))
+	if job.Parameters != "" {
+		params := []byte(job.Parameters)
 
 		type FeedData struct {
 			Feeds []string `json:"feeds"`
