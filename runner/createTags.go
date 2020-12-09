@@ -6,6 +6,7 @@ import (
 	"poseidon/db"
 	"poseidon/models"
 
+	"github.com/jdkato/prose"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -22,7 +23,26 @@ func createTags(job models.Job) {
 		for articlesCursor.Next(context.TODO()) {
 			err := articlesCursor.Decode(&article)
 			if err == nil {
-				fmt.Println(article["_id"])
+				title := article["title"]
+				description := article["description"]
+
+				var tags []string
+
+				if title != nil {
+					doc, _ := prose.NewDocument(title.(string))
+					for _, entity := range doc.Entities() {
+						tags = append(tags, entity.Text)
+					}
+				}
+
+				if description != nil {
+					doc, _ := prose.NewDocument(description.(string))
+					for _, entity := range doc.Entities() {
+						tags = append(tags, entity.Text)
+					}
+				}
+
+				fmt.Println(tags)
 			}
 		}
 	}
