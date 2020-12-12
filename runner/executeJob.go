@@ -6,9 +6,10 @@ import (
 )
 
 var jobMap map[string]interface{} = map[string]interface{}{
-	"ADD_FEEDS":    addFeedsJob,
-	"UPDATE_FEEDS": updateFeedsJob,
-	"CREATE_TAGS":  createTags,
+	"ADD_FEEDS":           addFeedsJob,
+	"UPDATE_FEEDS":        updateFeedsJob,
+	"CREATE_TAGS":         createTags,
+	"UPDATE_READING_LIST": updateReadingList,
 }
 
 func executeJob(job models.Job) {
